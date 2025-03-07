@@ -1,0 +1,22 @@
+package projeto.hugo.terapia.profile.enumeracoes;
+
+public enum ProfileInterests
+{
+    TERAPIA,
+    PSICOLOGIA,
+    TERAPIA_COGNITIVO_COMPORTAMENTAL,
+    PSICOTERAPIA,
+    TERAPIA_EMOCIONAL,
+    SAUDE_MENTAL,
+    ANSIEDADE,
+    DEPRESSAO,
+    RELACIONAMENTOS,
+    AUTOESTIMA,
+    MINDFULNESS,
+    ESTRESSE,
+    TRAUMA,
+    ADOLESCENCIA,
+    PSICANALISE,
+}
+
+
