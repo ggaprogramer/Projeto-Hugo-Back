@@ -1,11 +1,11 @@
-package projeto.hugo.terapia.profile.model;
+package projeto.hugo.terapia.professional.model;
 
-import projeto.hugo.terapia.authentication.model.Usuario;
-import projeto.hugo.terapia.profile.enumeracoes.Gender;
-import projeto.hugo.terapia.profile.enumeracoes.ProfileInterests;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.JdbcTypeCode;
+import projeto.hugo.terapia.authentication.model.Usuario;
+import projeto.hugo.terapia.profile.enumeracoes.Gender;
+import projeto.hugo.terapia.profile.enumeracoes.ProfileInterests;
 
 import java.sql.Types;
 import java.time.LocalDate;
@@ -15,7 +15,7 @@ import java.util.UUID;
 @Entity
 @Table
 @Data
-public class Profile {
+public class Professional {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

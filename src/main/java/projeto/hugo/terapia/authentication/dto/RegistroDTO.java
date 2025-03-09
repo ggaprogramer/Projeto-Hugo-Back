@@ -1,5 +1,6 @@
 package projeto.hugo.terapia.authentication.dto;
 import projeto.hugo.terapia.authentication.enumeracoes.RolesUsers;
+import projeto.hugo.terapia.profile.enumeracoes.Gender;
 import projeto.hugo.terapia.profile.enumeracoes.ProfileInterests;
 
 import java.util.List;
@@ -11,6 +12,7 @@ public record RegistroDTO(
         String email,
         List<RolesUsers> roles,
         String phone,
-        String age,
-        List<ProfileInterests> interests){
+        String dateBirth,
+        List<ProfileInterests> interests,
+        Gender gender){
 }

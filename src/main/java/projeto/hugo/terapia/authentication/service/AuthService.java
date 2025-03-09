@@ -5,6 +5,7 @@ import projeto.hugo.terapia.authentication.enumeracoes.RolesUsers;
 import projeto.hugo.terapia.authentication.enumeracoes.StatusResponse;
 import projeto.hugo.terapia.authentication.model.Usuario;
 import projeto.hugo.terapia.authentication.security.TokenService;
+import projeto.hugo.terapia.profile.enumeracoes.Gender;
 import projeto.hugo.terapia.profile.enumeracoes.ProfileInterests;
 import projeto.hugo.terapia.profile.model.Profile;
 import projeto.hugo.terapia.profile.service.ProfileService;
@@ -17,6 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -118,8 +120,9 @@ public class AuthService {
         String password2 = registroDTO.password2();
         List<RolesUsers> roles = registroDTO.roles();
         String phone = registroDTO.phone();
-        String age = registroDTO.age();
+        String dateBirth = registroDTO.dateBirth();
         List<ProfileInterests> interests = registroDTO.interests();
+        Gender gender = registroDTO.gender();
 
         if(username == null){
             return ResponseEntity
@@ -175,13 +178,13 @@ public class AuthService {
                             "Nenhum número de celular foi enviado."));
         }
 
-        if(age == null){
+        if(dateBirth == null){
             return ResponseEntity
                     .status(HttpStatus.BAD_REQUEST)
                     .body(new ResponseRegisterDTO(
                             StatusResponse.ERROR,
-                            "age",
-                            "Nenhuma idade foi enviada."));
+                            "date-birth",
+                            "Nenhuma data de aniversário foi enviada."));
         }
 
         if(interests == null || interests.isEmpty()){
@@ -191,6 +194,15 @@ public class AuthService {
                             StatusResponse.ERROR,
                             "interests",
                             "Nenhum interesse foi enviado."));
+        }
+
+        if(gender == null){
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(new ResponseRegisterDTO(
+                            StatusResponse.ERROR,
+                            "gender",
+                            "Nenhum gênero foi enviado."));
         }
 
         Usuario usuarioEmail = userService.encontrarPorEmail(email);
@@ -231,11 +243,13 @@ public class AuthService {
                             "A senha precisa ter no mínimo 8 caracteres."));
         }
 
+        LocalDate dateFormated = LocalDate.parse(dateBirth);
         Usuario novoUsuario = userService.salvarUsuario(registroDTO);
         Profile profile = new Profile();
         profile.setUser(novoUsuario);
         profile.setPhone(phone);
-        profile.setAge(age);
+        profile.setDateBirth(dateFormated);
+        profile.setGender(gender);
         profile.setInterests(interests);
         profileService.saveProfile(profile);
 
