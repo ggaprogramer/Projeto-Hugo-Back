@@ -22,6 +22,9 @@ public class Profile {
     private UUID id;
 
     @Column
+    private String name;
+
+    @Column
     private String phone;
 
     @Column
