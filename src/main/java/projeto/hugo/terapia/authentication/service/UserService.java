@@ -11,6 +11,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 
+import java.time.LocalDate;
+import java.time.Period;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -74,8 +76,32 @@ public class UserService {
         return userRepository.save(usuario);
     }
 
+    public void updatePasswordUsuario(Usuario usuario, String password1){
+        String passwordCriptografada = encoder.encode(password1);
+        usuario.setPassword(passwordCriptografada);
+
+        userRepository.save(usuario);
+    }
+
     public Usuario atualizarUsuario(Usuario usuario){
         return userRepository.save(usuario);
+    }
+
+    public int calcularIdade(String dataNascimento) {
+        // Converter a string de dataNascimento para LocalDate
+        LocalDate nascimento = LocalDate.parse(dataNascimento);
+        LocalDate hoje = LocalDate.now(); // Data atual
+
+        // Calcular a idade
+        int idade = Period.between(nascimento, hoje).getYears();
+
+        // Verifica se a pessoa já fez aniversário esse ano
+        if (hoje.getMonthValue() < nascimento.getMonthValue() ||
+                (hoje.getMonthValue() == nascimento.getMonthValue() && hoje.getDayOfMonth() < nascimento.getDayOfMonth())) {
+            idade--; // Se não, diminui 1 ano
+        }
+
+        return idade;
     }
 
 }

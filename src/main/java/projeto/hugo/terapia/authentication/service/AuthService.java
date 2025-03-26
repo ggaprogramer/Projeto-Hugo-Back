@@ -8,6 +8,7 @@ import projeto.hugo.terapia.authentication.repository.UserRepository;
 import projeto.hugo.terapia.authentication.security.TokenService;
 import projeto.hugo.terapia.professional.model.Professional;
 import projeto.hugo.terapia.professional.service.ProfessionalService;
+import projeto.hugo.terapia.profile.dto.ResponseUpdateDTO;
 import projeto.hugo.terapia.profile.enumeracoes.Gender;
 import projeto.hugo.terapia.profile.enumeracoes.ProfileInterests;
 import projeto.hugo.terapia.profile.enumeracoes.TypeProfile;
@@ -24,6 +25,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Period;
 import java.util.List;
 
 @Service
@@ -293,6 +295,17 @@ public class AuthService {
         }
 
         LocalDate dateFormated = LocalDate.parse(dateBirth);
+
+        Integer age = userService.calcularIdade(dateBirth);
+        if(age < 15){
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(new ResponseRegisterDTO(
+                            StatusResponse.ERROR,
+                            "date-birth",
+                            "Você tem que ter no mínimo 15 anos para acessar o site."));
+        }
+
         Usuario novoUsuario = userService.salvarUsuario(registroDTO);
         if(typeProfile.equals(TypeProfile.PROFILE)){
             Profile profile = new Profile();
@@ -322,13 +335,18 @@ public class AuthService {
                         "Perfil criado com sucesso."));
     }
 
-    public ResponseEntity<?> isAuthenticated(IsAuthenticatedDTO isAuthenticatedDTO) {
+    public ResponseEntity<isAuthenticatedResponseDTO> isAuthenticated(IsAuthenticatedDTO isAuthenticatedDTO) {
         String token = isAuthenticatedDTO.token();
         if(token != null){
             String idUser = tokenService.validateToken(token);
-            if(idUser != null) return ResponseEntity.status(HttpStatus.OK).body(null);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+            if(idUser != null) {
+                return ResponseEntity
+                        .status(HttpStatus.OK)
+                        .body(new isAuthenticatedResponseDTO(token));
+            }
         };
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(new isAuthenticatedResponseDTO(null));
     }
 }
