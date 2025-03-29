@@ -1,5 +1,7 @@
 package projeto.hugo.terapia.authentication.service;
 
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import projeto.hugo.terapia.authentication.dto.LoginDTO;
 import projeto.hugo.terapia.authentication.dto.RegistroDTO;
 import projeto.hugo.terapia.authentication.model.Usuario;
@@ -44,6 +46,7 @@ public class UserService {
         Optional<Usuario> usuario = userRepository.findById(uuid);
         return usuario.orElse(null);
     }
+
     public Usuario encontrarPorId(String id){
         UUID uuidUser = UUID.fromString(id);
         Optional<Usuario> usuario = userRepository.findById(uuidUser);
@@ -85,23 +88,6 @@ public class UserService {
 
     public Usuario atualizarUsuario(Usuario usuario){
         return userRepository.save(usuario);
-    }
-
-    public int calcularIdade(String dataNascimento) {
-        // Converter a string de dataNascimento para LocalDate
-        LocalDate nascimento = LocalDate.parse(dataNascimento);
-        LocalDate hoje = LocalDate.now(); // Data atual
-
-        // Calcular a idade
-        int idade = Period.between(nascimento, hoje).getYears();
-
-        // Verifica se a pessoa já fez aniversário esse ano
-        if (hoje.getMonthValue() < nascimento.getMonthValue() ||
-                (hoje.getMonthValue() == nascimento.getMonthValue() && hoje.getDayOfMonth() < nascimento.getDayOfMonth())) {
-            idade--; // Se não, diminui 1 ano
-        }
-
-        return idade;
     }
 
 }

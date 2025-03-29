@@ -4,18 +4,14 @@ import projeto.hugo.terapia.authentication.dto.*;
 import projeto.hugo.terapia.authentication.enumeracoes.RolesUsers;
 import projeto.hugo.terapia.authentication.enumeracoes.StatusResponse;
 import projeto.hugo.terapia.authentication.model.Usuario;
-import projeto.hugo.terapia.authentication.repository.UserRepository;
 import projeto.hugo.terapia.authentication.security.TokenService;
 import projeto.hugo.terapia.professional.model.Professional;
 import projeto.hugo.terapia.professional.service.ProfessionalService;
-import projeto.hugo.terapia.profile.dto.ResponseUpdateDTO;
 import projeto.hugo.terapia.profile.enumeracoes.Gender;
 import projeto.hugo.terapia.profile.enumeracoes.ProfileInterests;
 import projeto.hugo.terapia.profile.enumeracoes.TypeProfile;
 import projeto.hugo.terapia.profile.model.Profile;
 import projeto.hugo.terapia.profile.service.ProfileService;
-import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -25,7 +21,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.Period;
 import java.util.List;
 
 @Service
@@ -37,18 +32,6 @@ public class AuthService {
     private final TokenService tokenService;
     private final ProfileService profileService;
     private final ProfessionalService professionalService;
-
-    public String getCookie(String name, HttpServletRequest request) {
-        Cookie[] cookies = request.getCookies();
-        if (cookies != null) {
-            for (Cookie cookie : cookies) {
-                if (name.equals(cookie.getName())) {
-                    return cookie.getValue();
-                }
-            }
-        }
-        return null;
-    }
 
     public ResponseEntity<ResponseLoginDTO> login(LoginDTO loginDTO, HttpServletResponse response){
         String email = loginDTO.email();
@@ -296,7 +279,7 @@ public class AuthService {
 
         LocalDate dateFormated = LocalDate.parse(dateBirth);
 
-        Integer age = userService.calcularIdade(dateBirth);
+        Integer age = profileService.calcularIdade(dateBirth);
         if(age < 15){
             return ResponseEntity
                     .status(HttpStatus.BAD_REQUEST)
@@ -335,7 +318,7 @@ public class AuthService {
                         "Perfil criado com sucesso."));
     }
 
-    public ResponseEntity<isAuthenticatedResponseDTO> isAuthenticated(IsAuthenticatedDTO isAuthenticatedDTO) {
+    public ResponseEntity<isAuthenticatedResponseDTO> isAuthenticated(isAuthenticatedDTO isAuthenticatedDTO) {
         String token = isAuthenticatedDTO.token();
         if(token != null){
             String idUser = tokenService.validateToken(token);

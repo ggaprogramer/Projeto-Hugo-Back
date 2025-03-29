@@ -33,7 +33,7 @@ public class AuthController {
     }
 
     @PostMapping("/is-authenticated")
-    public ResponseEntity<?> isAuthenticated(@RequestBody IsAuthenticatedDTO isAuthenticatedDTO, HttpServletRequest request) {
+    public ResponseEntity<isAuthenticatedResponseDTO> isAuthenticated(@RequestBody isAuthenticatedDTO isAuthenticatedDTO) {
         return authService.isAuthenticated(isAuthenticatedDTO);
     }
 

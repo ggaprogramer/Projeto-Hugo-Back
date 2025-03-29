@@ -1,4 +1,6 @@
 package projeto.hugo.terapia.authentication.model;
+import lombok.Getter;
+import lombok.Setter;
 import projeto.hugo.terapia.profile.model.Profile;
 import jakarta.persistence.*;
 import projeto.hugo.terapia.authentication.enumeracoes.RolesUsers;
@@ -12,7 +14,8 @@ import java.util.UUID;
 
 @Entity
 @Table
-@Data
+@Getter
+@Setter
 public class Usuario {
 
     @Id

@@ -1,4 +1,4 @@
 package projeto.hugo.terapia.authentication.dto;
 
-public record IsAuthenticatedDTO (String token) {
+public record isAuthenticatedDTO(String token) {
 }

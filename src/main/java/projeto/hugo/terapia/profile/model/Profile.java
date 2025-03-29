@@ -1,5 +1,7 @@
 package projeto.hugo.terapia.profile.model;
 
+import lombok.Getter;
+import lombok.Setter;
 import projeto.hugo.terapia.authentication.model.Usuario;
 import projeto.hugo.terapia.profile.enumeracoes.Gender;
 import projeto.hugo.terapia.profile.enumeracoes.ProfileInterests;
@@ -14,7 +16,8 @@ import java.util.UUID;
 
 @Entity
 @Table
-@Data
+@Getter
+@Setter
 public class Profile {
 
     @Id

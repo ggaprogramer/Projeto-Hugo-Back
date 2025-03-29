@@ -12,7 +12,7 @@ public record ProfileInfo(
         String username,
         String email,
         String phone,
-        LocalDate dateBirth,
+        String dateBirth,
         List<ProfileInterests> interests,
         Gender gender,
         Boolean confirmacaoEmail

@@ -2,12 +2,10 @@ package projeto.hugo.terapia.profile.service;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.RequestBody;
-import projeto.hugo.terapia.authentication.dto.ResponseLoginDTO;
-import projeto.hugo.terapia.authentication.dto.ResponseRegisterDTO;
 import projeto.hugo.terapia.authentication.enumeracoes.StatusResponse;
 import projeto.hugo.terapia.authentication.model.Usuario;
 import projeto.hugo.terapia.authentication.service.UserService;
+import projeto.hugo.terapia.authentication.utils.SecurityUtils;
 import projeto.hugo.terapia.profile.dto.ProfileInfo;
 import projeto.hugo.terapia.profile.dto.ProfileUpdateDTO;
 import projeto.hugo.terapia.profile.dto.ResponseUpdateDTO;
@@ -18,8 +16,10 @@ import projeto.hugo.terapia.profile.model.Profile;
 import projeto.hugo.terapia.profile.repository.ProfileRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import java.time.format.DateTimeFormatter;
 
 import java.time.LocalDate;
+import java.time.Period;
 import java.util.List;
 import java.util.UUID;
 
@@ -29,6 +29,7 @@ public class ProfileService {
 
     private final ProfileRepository profileRepositoryepository;
     private final UserService userService;
+    private final SecurityUtils securityUtils;
 
     public void saveProfile(Profile profile) {
         profileRepositoryepository.save(profile);
@@ -38,7 +39,9 @@ public class ProfileService {
         return profileRepositoryepository.findByUser(usuario);
     }
 
-    public ResponseEntity<ResponseUpdateDTO> updateProfile(UUID uuid, ProfileUpdateDTO profileUpdateDTO) {
+    public ResponseEntity<ResponseUpdateDTO> updateProfile(ProfileUpdateDTO profileUpdateDTO) {
+        UUID uuid = securityUtils.getIdUserByFilterSecurity();
+
         String name = profileUpdateDTO.name();
         String username = profileUpdateDTO.username();
         String password1 = profileUpdateDTO.password1();
@@ -115,7 +118,7 @@ public class ProfileService {
         }
 
         LocalDate dateFormated = LocalDate.parse(dateBirth);
-        Integer age = userService.calcularIdade(dateBirth);
+        Integer age = this.calcularIdade(dateBirth);
         if(age < 15){
             return ResponseEntity
                     .status(HttpStatus.BAD_REQUEST)
@@ -143,19 +146,25 @@ public class ProfileService {
                 ));
     }
 
-    public ResponseEntity<ProfileInfo> getInfoProfile(UUID uuid){
+    public ResponseEntity<ProfileInfo> getInfoProfile(){
+
+        UUID uuid = securityUtils.getIdUserByFilterSecurity();
+
         Usuario findUsuario = userService.encontrarPorId(uuid);
         if(findUsuario != null){
             Profile findProfile = findProfileByUser(findUsuario);
             if(findProfile != null){
-                ResponseEntity
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+                String dataFormatada = findProfile.getDateBirth().format(formatter);
+
+                return ResponseEntity
                         .status(HttpStatus.OK)
                         .body(new ProfileInfo(
                                 findProfile.getName(),
                                 findUsuario.getUsername(),
                                 findUsuario.getEmail(),
                                 findProfile.getPhone(),
-                                findProfile.getDateBirth(),
+                                dataFormatada,
                                 findProfile.getInterests(),
                                 findProfile.getGender(),
                                 findUsuario.getConfirmacaoEmail()
@@ -168,4 +177,20 @@ public class ProfileService {
                         null, null, null, null, null));
     }
 
+    public int calcularIdade(String dataNascimento) {
+        // Converter a string de dataNascimento para LocalDate
+        LocalDate nascimento = LocalDate.parse(dataNascimento);
+        LocalDate hoje = LocalDate.now(); // Data atual
+
+        // Calcular a idade
+        int idade = Period.between(nascimento, hoje).getYears();
+
+        // Verifica se a pessoa já fez aniversário esse ano
+        if (hoje.getMonthValue() < nascimento.getMonthValue() ||
+                (hoje.getMonthValue() == nascimento.getMonthValue() && hoje.getDayOfMonth() < nascimento.getDayOfMonth())) {
+            idade--; // Se não, diminui 1 ano
+        }
+
+        return idade;
+    }
 }

@@ -12,6 +12,7 @@ import projeto.hugo.terapia.authentication.model.Usuario;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.oauth2.jwt.*;
 import org.springframework.stereotype.Service;
+import com.nimbusds.jwt.JWTClaimsSet;
 
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -66,6 +67,13 @@ public class TokenService {
     }
 
     public String validateToken(String token) {
+        if (token != null) {
+            Boolean tokenExpired = this.isTokenExpired(token);
+            if (tokenExpired) {
+                return null;
+            }
+        }
+
         try {
             // Parseia o token JWT
             SignedJWT signedJWT = SignedJWT.parse(token);
@@ -89,6 +97,27 @@ public class TokenService {
 
         } catch (Exception e) {
             return null;
+        }
+    }
+
+    public boolean isTokenExpired(String token) {
+        try {
+            // Parseia o token JWT
+            SignedJWT signedJWT = SignedJWT.parse(token);
+
+            // Recupera o claims do JWT
+            JWTClaimsSet claims = signedJWT.getJWTClaimsSet();
+
+            // Verifica se o claim "exp" existe e se o token expirou
+            Instant expirationTime = claims.getExpirationTime().toInstant();
+            Instant now = Instant.now();
+
+            // Se o tempo de expiração for antes do tempo atual, o token expirou
+            return now.isAfter(expirationTime);
+
+        } catch (Exception e) {
+            // Em caso de erro na análise do token ou no processo, assume-se que o token é inválido
+            return true;
         }
     }
 

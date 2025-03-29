@@ -1,7 +1,8 @@
 package projeto.hugo.terapia.profile.controller;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.ResponseEntity;
-import projeto.hugo.terapia.authentication.dto.ResponseLoginDTO;
+import org.springframework.security.access.prepost.PreAuthorize;
 import projeto.hugo.terapia.profile.dto.ProfileInfo;
 import projeto.hugo.terapia.profile.dto.ProfileUpdateDTO;
 import projeto.hugo.terapia.profile.dto.ResponseUpdateDTO;
@@ -24,14 +25,14 @@ public class ProfileController {
         profileService.saveProfile(profile);
     }
 
-    @GetMapping("/{uuid}")
-    public ResponseEntity<ProfileInfo> getInfoProfile(@PathVariable UUID uuid){
-        return profileService.getInfoProfile(uuid);
+    @PreAuthorize("hasAnyRole('USER')")
+    @GetMapping
+    public ResponseEntity<ProfileInfo> getInfoProfile(){
+        return profileService.getInfoProfile();
     }
 
     @PutMapping("/update/{uuid}")
-    public ResponseEntity<ResponseUpdateDTO> updateProfile(@PathVariable UUID uuid,
-                                                           @RequestBody ProfileUpdateDTO profileUpdateDTO){
-        return profileService.updateProfile(uuid, profileUpdateDTO);
+    public ResponseEntity<ResponseUpdateDTO> updateProfile(@RequestBody ProfileUpdateDTO profileUpdateDTO){
+        return profileService.updateProfile(profileUpdateDTO);
     }
 }
