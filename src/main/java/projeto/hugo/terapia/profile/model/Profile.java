@@ -4,13 +4,10 @@ import lombok.Getter;
 import lombok.Setter;
 import projeto.hugo.terapia.authentication.model.Usuario;
 import projeto.hugo.terapia.profile.enumeracoes.Gender;
-import projeto.hugo.terapia.profile.enumeracoes.ProfileInterests;
 import jakarta.persistence.*;
-import lombok.Data;
-import org.hibernate.annotations.JdbcTypeCode;
 
-import java.sql.Types;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -41,9 +38,12 @@ public class Profile {
     @Enumerated(EnumType.STRING)
     private Gender gender;
 
-    @JdbcTypeCode(Types.ARRAY) // Define o tipo JDBC como ARRAY
-    @Column(name = "interests", columnDefinition = "varchar[]")
-    @Enumerated(EnumType.STRING)
-    private List<ProfileInterests> interests;
+    @ManyToMany
+    @JoinTable(
+            name = "profile_interest",
+            joinColumns = @JoinColumn(name = "profile_id"),
+            inverseJoinColumns = @JoinColumn(name = "interest_id")
+    )
+    private List<ProfileInterests> interests = new ArrayList<>();
 
 }

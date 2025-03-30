@@ -7,12 +7,13 @@ import projeto.hugo.terapia.authentication.model.Usuario;
 import projeto.hugo.terapia.authentication.service.UserService;
 import projeto.hugo.terapia.authentication.utils.SecurityUtils;
 import projeto.hugo.terapia.profile.dto.ProfileInfo;
+import projeto.hugo.terapia.profile.dto.ProfileInterestsDTO;
 import projeto.hugo.terapia.profile.dto.ProfileUpdateDTO;
 import projeto.hugo.terapia.profile.dto.ResponseUpdateDTO;
 import projeto.hugo.terapia.profile.enumeracoes.Gender;
-import projeto.hugo.terapia.profile.enumeracoes.ProfileInterests;
 import projeto.hugo.terapia.profile.enumeracoes.TypeProfile;
 import projeto.hugo.terapia.profile.model.Profile;
+import projeto.hugo.terapia.profile.model.ProfileInterests;
 import projeto.hugo.terapia.profile.repository.ProfileRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -22,21 +23,22 @@ import java.time.LocalDate;
 import java.time.Period;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class ProfileService {
 
-    private final ProfileRepository profileRepositoryepository;
+    private final ProfileRepository profileRepository;
     private final UserService userService;
     private final SecurityUtils securityUtils;
 
     public void saveProfile(Profile profile) {
-        profileRepositoryepository.save(profile);
+        profileRepository.save(profile);
     }
 
     public Profile findProfileByUser(Usuario usuario){
-        return profileRepositoryepository.findByUser(usuario);
+        return profileRepository.findByUser(usuario);
     }
 
     public ResponseEntity<ResponseUpdateDTO> updateProfile(ProfileUpdateDTO profileUpdateDTO) {
@@ -157,6 +159,12 @@ public class ProfileService {
                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
                 String dataFormatada = findProfile.getDateBirth().format(formatter);
 
+                List<ProfileInterestsDTO> profileInterestsDTO = findProfile.getInterests()
+                        .stream()
+                        .map(interests ->
+                                new ProfileInterestsDTO(interests.getValue(), interests.getLabel()))
+                        .collect(Collectors.toList());
+
                 return ResponseEntity
                         .status(HttpStatus.OK)
                         .body(new ProfileInfo(
@@ -165,7 +173,7 @@ public class ProfileService {
                                 findUsuario.getEmail(),
                                 findProfile.getPhone(),
                                 dataFormatada,
-                                findProfile.getInterests(),
+                                profileInterestsDTO,
                                 findProfile.getGender(),
                                 findUsuario.getConfirmacaoEmail()
                         ));

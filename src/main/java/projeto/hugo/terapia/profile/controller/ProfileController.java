@@ -1,6 +1,5 @@
 package projeto.hugo.terapia.profile.controller;
 
-import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import projeto.hugo.terapia.profile.dto.ProfileInfo;
@@ -10,8 +9,6 @@ import projeto.hugo.terapia.profile.model.Profile;
 import projeto.hugo.terapia.profile.service.ProfileService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/profile")

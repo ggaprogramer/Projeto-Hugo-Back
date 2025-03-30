@@ -1,12 +1,14 @@
 package projeto.hugo.terapia.professional.controller;
 
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.*;
+import projeto.hugo.terapia.professional.service.ProfessionalService;
 
 @RestController
 @RequestMapping("/professional")
+@RequiredArgsConstructor
 public class ProfessionalController {
 
-
+    private final ProfessionalService professionalService;
 
 }

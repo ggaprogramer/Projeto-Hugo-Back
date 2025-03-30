@@ -1,8 +1,8 @@
 package projeto.hugo.terapia.profile.dto;
 
 import projeto.hugo.terapia.profile.enumeracoes.Gender;
-import projeto.hugo.terapia.profile.enumeracoes.ProfileInterests;
 import projeto.hugo.terapia.profile.enumeracoes.TypeProfile;
+import projeto.hugo.terapia.profile.model.ProfileInterests;
 
 import java.util.List;
 

@@ -6,11 +6,12 @@ import projeto.hugo.terapia.authentication.enumeracoes.StatusResponse;
 import projeto.hugo.terapia.authentication.model.Usuario;
 import projeto.hugo.terapia.authentication.security.TokenService;
 import projeto.hugo.terapia.professional.model.Professional;
+import projeto.hugo.terapia.professional.service.ProfessionalInterestsService;
 import projeto.hugo.terapia.professional.service.ProfessionalService;
 import projeto.hugo.terapia.profile.enumeracoes.Gender;
-import projeto.hugo.terapia.profile.enumeracoes.ProfileInterests;
 import projeto.hugo.terapia.profile.enumeracoes.TypeProfile;
 import projeto.hugo.terapia.profile.model.Profile;
+import projeto.hugo.terapia.profile.service.ProfileInterestsService;
 import projeto.hugo.terapia.profile.service.ProfileService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +33,8 @@ public class AuthService {
     private final TokenService tokenService;
     private final ProfileService profileService;
     private final ProfessionalService professionalService;
+    private final ProfileInterestsService profileInterestsService;
+    private final ProfessionalInterestsService professionalInterestsService;
 
     public ResponseEntity<ResponseLoginDTO> login(LoginDTO loginDTO, HttpServletResponse response){
         String email = loginDTO.email();
@@ -136,7 +139,7 @@ public class AuthService {
         List<RolesUsers> roles = registroDTO.roles();
         String phone = registroDTO.phone();
         String dateBirth = registroDTO.dateBirth();
-        List<ProfileInterests> interests = registroDTO.interests();
+        List<String> interests = registroDTO.interests();
         Gender gender = registroDTO.gender();
         TypeProfile typeProfile = registroDTO.typeProfile();
 
@@ -280,7 +283,7 @@ public class AuthService {
         LocalDate dateFormated = LocalDate.parse(dateBirth);
 
         Integer age = profileService.calcularIdade(dateBirth);
-        if(age < 15){
+        if(age < 15) {
             return ResponseEntity
                     .status(HttpStatus.BAD_REQUEST)
                     .body(new ResponseRegisterDTO(
@@ -297,7 +300,7 @@ public class AuthService {
             profile.setPhone(phone);
             profile.setDateBirth(dateFormated);
             profile.setGender(gender);
-            profile.setInterests(interests);
+            profile.setInterests(profileInterestsService.getInterestsProfile(interests));
             profileService.saveProfile(profile);
         } else {
             Professional professional = new Professional();
@@ -306,7 +309,7 @@ public class AuthService {
             professional.setPhone(phone);
             professional.setDateBirth(dateFormated);
             professional.setGender(gender);
-            professional.setInterests(interests);
+            professional.setInterests(professionalInterestsService.getInterestsProfessional(interests));
             professionalService.saveProfessional(professional);
         }
 

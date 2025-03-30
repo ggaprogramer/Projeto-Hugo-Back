@@ -7,7 +7,7 @@ import projeto.hugo.terapia.authentication.model.Usuario;
 import projeto.hugo.terapia.professional.enumeracoes.Approach;
 import projeto.hugo.terapia.professional.enumeracoes.Specialty;
 import projeto.hugo.terapia.profile.enumeracoes.Gender;
-import projeto.hugo.terapia.profile.enumeracoes.ProfileInterests;
+import projeto.hugo.terapia.profile.model.ProfileInterests;
 
 import java.sql.Types;
 import java.time.LocalDate;
@@ -39,10 +39,13 @@ public class Professional {
     @Enumerated(EnumType.STRING)
     private Gender gender;
 
-    @JdbcTypeCode(Types.ARRAY) // Define o tipo JDBC como ARRAY
-    @Column(name = "interests", columnDefinition = "varchar[]")
-    @Enumerated(EnumType.STRING)
-    private List<ProfileInterests> interests;
+    @ManyToMany
+    @JoinTable(
+            name = "professional_interest",
+            joinColumns = @JoinColumn(name = "professional_id"),
+            inverseJoinColumns = @JoinColumn(name = "interest_id")
+    )
+    private List<ProfessionalInterests> interests = new ArrayList<>();
 
     // Exclusivos do profissional - INÍCIO
     @JdbcTypeCode(Types.ARRAY) // Define o tipo JDBC como ARRAY
