@@ -2,6 +2,7 @@ package projeto.hugo.terapia.profile.service;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import projeto.hugo.terapia.authentication.enumeracoes.StatusResponse;
 import projeto.hugo.terapia.authentication.model.Usuario;
 import projeto.hugo.terapia.authentication.service.UserService;
@@ -30,6 +31,7 @@ import java.util.stream.Collectors;
 public class ProfileService {
 
     private final ProfileRepository profileRepository;
+    private final ProfileInterestsService profileInterestsService;
     private final UserService userService;
     private final SecurityUtils securityUtils;
 
@@ -41,19 +43,39 @@ public class ProfileService {
         return profileRepository.findByUser(usuario);
     }
 
+    @Transactional
     public ResponseEntity<ResponseUpdateDTO> updateProfile(ProfileUpdateDTO profileUpdateDTO) {
         UUID uuid = securityUtils.getIdUserByFilterSecurity();
 
         String name = profileUpdateDTO.name();
         String username = profileUpdateDTO.username();
+        String password = profileUpdateDTO.password();
         String password1 = profileUpdateDTO.password1();
         String password2 = profileUpdateDTO.password2();
         String email = profileUpdateDTO.email();
         String phone = profileUpdateDTO.phone();
-        String dateBirth = profileUpdateDTO.dateBirth();
-        List<ProfileInterests> interests = profileUpdateDTO.interests();
+        List<String> interests = profileUpdateDTO.interests();
         Gender gender = profileUpdateDTO.gender();
         TypeProfile typeProfile = profileUpdateDTO.typeProfile();
+
+        if(!typeProfile.equals(TypeProfile.PROFILE)){
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(new ResponseUpdateDTO(
+                            StatusResponse.ERROR,
+                            "Apenas usuários comuns podem acessar essa área. " +
+                                    "Por favor, fale com o suporte.",
+                            "system"));
+        }
+
+        if(interests.isEmpty() || interests == null){
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(new ResponseUpdateDTO(
+                            StatusResponse.ERROR,
+                            "Você não pode deixar a lista de interesses vazia. Escolha no mínimo 1.",
+                            "interests"));
+        }
 
         Usuario findUsuario = userService.encontrarPorId(uuid);
         if(findUsuario == null){
@@ -61,29 +83,29 @@ public class ProfileService {
                     .status(HttpStatus.BAD_REQUEST)
                     .body(new ResponseUpdateDTO(
                             StatusResponse.ERROR,
-                            "system",
                             "O identificador do usuário que foi enviado é inválido ou não existe. " +
-                                    "Por favor, fale com o suporte."));
+                                    "Por favor, fale com o suporte.",
+                            "system"));
         }
 
         Boolean findUsuarioByUsername = userService.findUserByUsername(username);
-        if(findUsuarioByUsername){
+        if(!findUsuario.getUsername().equals(username) && findUsuarioByUsername){
             return ResponseEntity
                     .status(HttpStatus.BAD_REQUEST)
                     .body(new ResponseUpdateDTO(
                             StatusResponse.ERROR,
-                            "username",
-                            "O usuário enviado já existe."));
+                            "O usuário enviado já existe.",
+                            "username"));
         }
 
         Boolean findUsuarioByEmail = userService.findUserByEmail(email);
-        if(findUsuarioByEmail){
+        if(!findUsuario.getEmail().equals(email) && findUsuarioByEmail){
             return ResponseEntity
                     .status(HttpStatus.BAD_REQUEST)
                     .body(new ResponseUpdateDTO(
                             StatusResponse.ERROR,
-                            "email",
-                            "O e-mail enviado já existe."));
+                            "O e-mail enviado já existe.",
+                            "email"));
         }
 
         Profile findProfile = findProfileByUser(findUsuario);
@@ -92,59 +114,56 @@ public class ProfileService {
                     .status(HttpStatus.BAD_REQUEST)
                     .body(new ResponseUpdateDTO(
                             StatusResponse.ERROR,
-                            "system",
                             "O usuário logado não está atrelado a nenhum perfil. " +
-                                    "Por favor, fale com o suporte."));
+                                    "Por favor, fale com o suporte.",
+                            "system"));
         }
 
-        if (password1 != null && password2 != null) {
-            if (!password1.equals(password2)) {
+        if(!password.isEmpty() && !password1.isEmpty() && !password2.isEmpty()) {
+            if(!userService.matchesPassword(password, findUsuario.getPassword())){
                 return ResponseEntity
                         .status(HttpStatus.BAD_REQUEST)
                         .body(new ResponseUpdateDTO(
                                 StatusResponse.ERROR,
-                                "password1",
-                                "As senhas não são iguais."));
+                                "A senha antiga enviada não é válida. Por favor, verificar novamente.",
+                                "password"));
             }
 
-            if (password1.length() < 8) {
+            if(!password1.equals(password2)) {
                 return ResponseEntity
                         .status(HttpStatus.BAD_REQUEST)
                         .body(new ResponseUpdateDTO(
                                 StatusResponse.ERROR,
-                                "password1",
-                                "A senha precisa ter no mínimo 8 caracteres."));
+                                "As senhas não são iguais.",
+                                "password1"));
+            }
+
+            if(password1.length() < 8) {
+                return ResponseEntity
+                        .status(HttpStatus.BAD_REQUEST)
+                        .body(new ResponseUpdateDTO(
+                                StatusResponse.ERROR,
+                                "A senha precisa ter no mínimo 8 caracteres.",
+                                "password1"));
             }
 
             userService.updatePasswordUsuario(findUsuario, password1);
         }
 
-        LocalDate dateFormated = LocalDate.parse(dateBirth);
-        Integer age = this.calcularIdade(dateBirth);
-        if(age < 15){
-            return ResponseEntity
-                    .status(HttpStatus.BAD_REQUEST)
-                    .body(new ResponseUpdateDTO(
-                            StatusResponse.ERROR,
-                            "date-birth",
-                            "Você tem que ter no mínimo 15 anos para acessar o site."));
-        }
-
         findProfile.setName(name);
         findProfile.setPhone(phone);
-        findProfile.setDateBirth(dateFormated);
         findProfile.setGender(gender);
-        findProfile.setInterests(interests);
-        saveProfile(findProfile);
+        findProfile.setInterests(profileInterestsService.getInterestsProfile(interests));
         findUsuario.setUsername(username);
         findUsuario.setEmail(email);
+        userService.atualizarUsuario(findUsuario);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(new ResponseUpdateDTO(
                         StatusResponse.SUCCESS,
-                        "O seu perfil foi atualizado com sucesso.",
-                        "system"
+                        "system",
+                        "O seu perfil foi atualizado com sucesso."
                 ));
     }
 

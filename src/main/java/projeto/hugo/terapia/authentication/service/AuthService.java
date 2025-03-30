@@ -1,5 +1,6 @@
 package projeto.hugo.terapia.authentication.service;
 
+import org.springframework.transaction.annotation.Transactional;
 import projeto.hugo.terapia.authentication.dto.*;
 import projeto.hugo.terapia.authentication.enumeracoes.RolesUsers;
 import projeto.hugo.terapia.authentication.enumeracoes.StatusResponse;
@@ -95,7 +96,7 @@ public class AuthService {
         }
 
         String senhaCriptografada = usuario.getPassword();
-        boolean senhasBatem = encoder.matches(password, senhaCriptografada);
+        boolean senhasBatem = userService.matchesPassword(password, senhaCriptografada);
 
         if(!senhasBatem){
             return ResponseEntity
@@ -130,6 +131,7 @@ public class AuthService {
         }
     }
 
+    @Transactional
     public ResponseEntity<ResponseRegisterDTO> registro(RegistroDTO registroDTO){
         String name = registroDTO.name();
         String username = registroDTO.username();

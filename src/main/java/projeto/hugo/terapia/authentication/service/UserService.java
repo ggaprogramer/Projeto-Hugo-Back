@@ -1,20 +1,13 @@
 package projeto.hugo.terapia.authentication.service;
 
-import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletRequest;
-import projeto.hugo.terapia.authentication.dto.LoginDTO;
 import projeto.hugo.terapia.authentication.dto.RegistroDTO;
 import projeto.hugo.terapia.authentication.model.Usuario;
 import projeto.hugo.terapia.authentication.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
 
-import java.time.LocalDate;
-import java.time.Period;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -84,6 +77,10 @@ public class UserService {
         usuario.setPassword(passwordCriptografada);
 
         userRepository.save(usuario);
+    }
+
+    public Boolean matchesPassword(String password, String senhaCriptografada){
+        return encoder.matches(password, senhaCriptografada);
     }
 
     public Usuario atualizarUsuario(Usuario usuario){
