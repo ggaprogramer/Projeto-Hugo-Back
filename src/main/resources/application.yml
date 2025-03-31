@@ -17,3 +17,9 @@ spring:
   configuration:
     host-front-end: http://localhost:3000
     host-back-end: http://localhost:8080
+
+  cloudfare:
+    access-key: ${ACCESS_KEY_CLOUDFARE}
+    secret-key: ${SECRET_KEY_CLOUDFARE}
+    account-id: ${ACCOUNT_ID_CLOUDFARE}
+    r2-region: ${R2_REGION_CLOUDFARE}
