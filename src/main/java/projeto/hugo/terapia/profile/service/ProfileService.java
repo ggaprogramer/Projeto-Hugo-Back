@@ -170,14 +170,12 @@ public class ProfileService {
         try{
             if(base64File != null || mimeType != null){
                 if(findProfile.getPhoto() != null){
-                    String nameFile = findProfile.getUser().getUsername() + "-" + UUID.randomUUID();
                     Boolean resultDeleteFile = cloudfareService.deleteFile(
-                            bucketProfilePhotoName,
-                            nameFile);
+                            findProfile.getPhoto().getBucket(),
+                            findProfile.getPhoto().getName());
                     if(!resultDeleteFile){
                         throw new IOException("Erro ao deletar o arquivo. ");
                     } else {
-                        ProfilePhoto profilePhotoDeleted = findProfile.getPhoto();
                         findProfile.setPhoto(null);
                         this.atualizarPerfil(findProfile);
                     }
@@ -194,8 +192,7 @@ public class ProfileService {
                         bucketProfilePhotoName,
                         nameFile,
                         byteArrayInputStream,
-                        mimeType,
-                        true);
+                        mimeType);
                 if(!resultUploadFile){
                     throw new IOException("Erro ao salvar o arquivo. ");
                 } else {
