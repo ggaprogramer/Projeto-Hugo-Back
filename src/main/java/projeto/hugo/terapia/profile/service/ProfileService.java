@@ -1,28 +1,34 @@
 package projeto.hugo.terapia.profile.service;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.PathVariable;
 import projeto.hugo.terapia.authentication.enumeracoes.StatusResponse;
 import projeto.hugo.terapia.authentication.model.Usuario;
 import projeto.hugo.terapia.authentication.service.UserService;
 import projeto.hugo.terapia.authentication.utils.SecurityUtils;
-import projeto.hugo.terapia.profile.dto.ProfileInfo;
-import projeto.hugo.terapia.profile.dto.ProfileInterestsDTO;
-import projeto.hugo.terapia.profile.dto.ProfileUpdateDTO;
-import projeto.hugo.terapia.profile.dto.ResponseUpdateDTO;
+import projeto.hugo.terapia.cloudfare.service.CloudfareService;
+import projeto.hugo.terapia.profile.dto.*;
 import projeto.hugo.terapia.profile.enumeracoes.Gender;
 import projeto.hugo.terapia.profile.enumeracoes.TypeProfile;
 import projeto.hugo.terapia.profile.model.Profile;
-import projeto.hugo.terapia.profile.model.ProfileInterests;
+import projeto.hugo.terapia.profile.model.ProfilePhoto;
+import projeto.hugo.terapia.profile.repository.ProfilePhotoRepository;
 import projeto.hugo.terapia.profile.repository.ProfileRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.time.format.DateTimeFormatter;
 
 import java.time.LocalDate;
 import java.time.Period;
+import java.util.Base64;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -30,10 +36,14 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ProfileService {
 
+    @Value("${spring.cloudfare.bucket-profile-photo-name}")
+    private String bucketProfilePhotoName;
+
     private final ProfileRepository profileRepository;
     private final ProfileInterestsService profileInterestsService;
     private final UserService userService;
     private final SecurityUtils securityUtils;
+    private final CloudfareService cloudfareService;
 
     public void saveProfile(Profile profile) {
         profileRepository.save(profile);
@@ -41,6 +51,10 @@ public class ProfileService {
 
     public Profile findProfileByUser(Usuario usuario){
         return profileRepository.findByUser(usuario);
+    }
+
+    public Optional<Profile> findProfileById(UUID uuid){
+        return profileRepository.findById(uuid);
     }
 
     @Transactional
@@ -54,6 +68,8 @@ public class ProfileService {
         String password2 = profileUpdateDTO.password2();
         String email = profileUpdateDTO.email();
         String phone = profileUpdateDTO.phone();
+        String base64File = profileUpdateDTO.base64File();
+        String mimeType = profileUpdateDTO.mimeType();
         List<String> interests = profileUpdateDTO.interests();
         Gender gender = profileUpdateDTO.gender();
         TypeProfile typeProfile = profileUpdateDTO.typeProfile();
@@ -150,6 +166,57 @@ public class ProfileService {
             userService.updatePasswordUsuario(findUsuario, password1);
         }
 
+        ProfilePhoto profilePhoto;
+        try{
+            if(base64File != null || mimeType != null){
+                if(findProfile.getPhoto() != null){
+                    String nameFile = findProfile.getUser().getUsername() + "-" + UUID.randomUUID();
+                    Boolean resultDeleteFile = cloudfareService.deleteFile(
+                            bucketProfilePhotoName,
+                            nameFile);
+                    if(!resultDeleteFile){
+                        throw new IOException("Erro ao deletar o arquivo. ");
+                    } else {
+                        ProfilePhoto profilePhotoDeleted = findProfile.getPhoto();
+                        findProfile.setPhoto(null);
+                        this.atualizarPerfil(findProfile);
+                    }
+                }
+
+                String nameFile = findProfile.getUser().getUsername() + "-" + UUID.randomUUID();
+
+                // Decodifica a string base64 em um array de bytes
+                byte[] fileBytes = Base64.getDecoder().decode(base64File);
+                // Cria um InputStream a partir dos bytes
+                ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(fileBytes);
+
+                Boolean resultUploadFile = cloudfareService.uploadFile(
+                        bucketProfilePhotoName,
+                        nameFile,
+                        byteArrayInputStream,
+                        mimeType,
+                        true);
+                if(!resultUploadFile){
+                    throw new IOException("Erro ao salvar o arquivo. ");
+                } else {
+                    profilePhoto = new ProfilePhoto();
+                    profilePhoto.setBucket(bucketProfilePhotoName);
+                    profilePhoto.setName(nameFile);
+                    profilePhoto.setProfile(findProfile);
+                    findProfile.setPhoto(profilePhoto);
+                    this.atualizarPerfil(findProfile);
+                }
+            }
+        } catch (IOException e) {
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(new ResponseUpdateDTO(
+                            StatusResponse.ERROR,
+                            e.getMessage() +
+                                    "Por favor, fale com o suporte.",
+                            "file"));
+        }
+
         findProfile.setName(name);
         findProfile.setPhone(phone);
         findProfile.setGender(gender);
@@ -184,14 +251,24 @@ public class ProfileService {
                                 new ProfileInterestsDTO(interests.getValue(), interests.getLabel()))
                         .collect(Collectors.toList());
 
+                String linkPhoto = null;
+                if(findProfile.getPhoto() != null){
+                    linkPhoto = cloudfareService.generateLinkFile(
+                            findProfile.getPhoto().getBucket(),
+                            findProfile.getPhoto().getName()
+                    );
+                }
+
                 return ResponseEntity
                         .status(HttpStatus.OK)
                         .body(new ProfileInfo(
+                                findProfile.getId(),
                                 findProfile.getName(),
                                 findUsuario.getUsername(),
                                 findUsuario.getEmail(),
                                 findProfile.getPhone(),
                                 dataFormatada,
+                                linkPhoto,
                                 profileInterestsDTO,
                                 findProfile.getGender(),
                                 findUsuario.getConfirmacaoEmail()
@@ -200,8 +277,23 @@ public class ProfileService {
         }
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
-                .body(new ProfileInfo(null, null, null,
-                        null, null, null, null, null));
+                .body(new ProfileInfo(null, null, null, null,
+                        null, null, null, null, null, null));
+    }
+
+    public ResponseEntity<ResponseUrlPhotoDTO> getUrlPhoto(@PathVariable UUID uuid){
+        Optional<Profile> profile = this.findProfileById(uuid);
+        if(profile.isPresent()){
+            return ResponseEntity
+                    .status(HttpStatus.OK)
+                    .body(new ResponseUrlPhotoDTO(
+                            cloudfareService.generateLinkFile(profile.get().getPhoto().getBucket(), profile.get().getPhoto().getName())
+                    ));
+        } else {
+            return ResponseEntity
+                    .status(HttpStatus.OK)
+                    .body(new ResponseUrlPhotoDTO(null));
+        }
     }
 
     public int calcularIdade(String dataNascimento) {
@@ -219,5 +311,9 @@ public class ProfileService {
         }
 
         return idade;
+    }
+
+    public Profile atualizarPerfil(Profile profile){
+        return profileRepository.save(profile);
     }
 }

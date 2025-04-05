@@ -17,19 +17,4 @@ public class CloudfareController {
 
     private final CloudfareService cloudfareService;
 
-    @PostMapping("create-bucket/{bucketName}")
-    public ResponseEntity<?> createBucket(@PathVariable String bucketName){
-        return cloudfareService.createBucket(bucketName);
-    }
-
-    @PostMapping("bucket-exists/{bucketName}")
-    public Boolean doesBucketExist(@PathVariable String bucketName){
-        return cloudfareService.doesBucketExist(bucketName);
-    }
-
-    @PostMapping("delete-bucket/{bucketName}")
-    public ResponseEntity<?> deleteBucket(@PathVariable String bucketName){
-        return cloudfareService.deleteBucket(bucketName);
-    }
-
 }

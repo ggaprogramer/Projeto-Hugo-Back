@@ -5,9 +5,12 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import projeto.hugo.terapia.profile.dto.ProfileInfo;
 import projeto.hugo.terapia.profile.dto.ProfileUpdateDTO;
 import projeto.hugo.terapia.profile.dto.ResponseUpdateDTO;
+import projeto.hugo.terapia.profile.dto.ResponseUrlPhotoDTO;
 import projeto.hugo.terapia.profile.service.ProfileService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/profile")
@@ -26,5 +29,11 @@ public class ProfileController {
     @PutMapping("/update")
     public ResponseEntity<ResponseUpdateDTO> updateProfile(@RequestBody ProfileUpdateDTO profileUpdateDTO){
         return profileService.updateProfile(profileUpdateDTO);
+    }
+
+    @PreAuthorize("hasAnyRole('PROFILE')")
+    @GetMapping("/photo/{uuid}")
+    public ResponseEntity<ResponseUrlPhotoDTO> getUrlPhoto(@PathVariable UUID uuid){
+        return profileService.getUrlPhoto(uuid);
     }
 }

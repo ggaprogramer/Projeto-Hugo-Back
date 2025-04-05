@@ -1,6 +1,6 @@
 spring:
   application:
-    name: whatsapp.web
+    name: projeto.hugo.terapia
   datasource:
     url: jdbc:postgresql://localhost:5433/mydatabase
     username: myuser
@@ -23,3 +23,4 @@ spring:
     secret-key: ${SECRET_KEY_CLOUDFARE}
     account-id: ${ACCOUNT_ID_CLOUDFARE}
     r2-region: ${R2_REGION_CLOUDFARE}
+    bucket-profile-photo-name: profile-photo

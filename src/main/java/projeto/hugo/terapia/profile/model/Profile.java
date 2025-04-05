@@ -38,6 +38,9 @@ public class Profile {
     @Enumerated(EnumType.STRING)
     private Gender gender;
 
+    @OneToOne(mappedBy = "profile", cascade = CascadeType.ALL, orphanRemoval = true)
+    private ProfilePhoto photo;
+
     @ManyToMany
     @JoinTable(
             name = "profile_interest",
