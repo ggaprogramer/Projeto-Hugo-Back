@@ -20,6 +20,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import projeto.hugo.terapia.profile.utils.ProfileUtils;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -36,6 +37,7 @@ public class AuthService {
     private final ProfessionalService professionalService;
     private final ProfileInterestsService profileInterestsService;
     private final ProfessionalInterestsService professionalInterestsService;
+    private final ProfileUtils profileUtils;
 
     public ResponseEntity<ResponseLoginDTO> login(LoginDTO loginDTO, HttpServletResponse response){
         String email = loginDTO.email();
@@ -284,7 +286,7 @@ public class AuthService {
 
         LocalDate dateFormated = LocalDate.parse(dateBirth);
 
-        Integer age = profileService.calcularIdade(dateBirth);
+        Integer age = profileUtils.calcularIdade(dateBirth);
         if(age < 15) {
             return ResponseEntity
                     .status(HttpStatus.BAD_REQUEST)

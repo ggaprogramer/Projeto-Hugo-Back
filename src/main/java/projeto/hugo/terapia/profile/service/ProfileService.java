@@ -13,12 +13,14 @@ import projeto.hugo.terapia.cloudfare.service.CloudfareService;
 import projeto.hugo.terapia.profile.dto.*;
 import projeto.hugo.terapia.profile.enumeracoes.Gender;
 import projeto.hugo.terapia.profile.enumeracoes.TypeProfile;
+import projeto.hugo.terapia.profile.enumeracoes.UnitSizeFile;
 import projeto.hugo.terapia.profile.model.Profile;
 import projeto.hugo.terapia.profile.model.ProfilePhoto;
 import projeto.hugo.terapia.profile.repository.ProfilePhotoRepository;
 import projeto.hugo.terapia.profile.repository.ProfileRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import projeto.hugo.terapia.profile.utils.ProfileUtils;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -44,6 +46,7 @@ public class ProfileService {
     private final UserService userService;
     private final SecurityUtils securityUtils;
     private final CloudfareService cloudfareService;
+    private final ProfileUtils profileUtils;
 
     public void saveProfile(Profile profile) {
         profileRepository.save(profile);
@@ -169,12 +172,21 @@ public class ProfileService {
         ProfilePhoto profilePhoto;
         try{
             if(base64File != null || mimeType != null){
+                Integer sizeFileFormated = profileUtils.calculateSizeFileInBytes(base64File);
+                Double sizeMax = 5.0;
+                UnitSizeFile sizeSymbol = UnitSizeFile.MB;
+                Double sizeMaxBytes = profileUtils.convertToBytes(sizeMax, sizeSymbol);
+
+                if(sizeFileFormated >= sizeMaxBytes){
+                    throw new IOException("O tamanho da foto tem que ser menor do que " + sizeMax + " " + sizeSymbol.getDescricao());
+                }
+
                 if(findProfile.getPhoto() != null){
                     Boolean resultDeleteFile = cloudfareService.deleteFile(
                             findProfile.getPhoto().getBucket(),
                             findProfile.getPhoto().getName());
                     if(!resultDeleteFile){
-                        throw new IOException("Erro ao deletar o arquivo. ");
+                        throw new IOException("Erro ao deletar o arquivo. Por favor, fale com o suporte.");
                     } else {
                         findProfile.setPhoto(null);
                         this.atualizarPerfil(findProfile);
@@ -194,7 +206,7 @@ public class ProfileService {
                         byteArrayInputStream,
                         mimeType);
                 if(!resultUploadFile){
-                    throw new IOException("Erro ao salvar o arquivo. ");
+                    throw new IOException("Erro ao salvar o arquivo. Por favor, fale com o suporte.");
                 } else {
                     profilePhoto = new ProfilePhoto();
                     profilePhoto.setBucket(bucketProfilePhotoName);
@@ -209,8 +221,7 @@ public class ProfileService {
                     .status(HttpStatus.BAD_REQUEST)
                     .body(new ResponseUpdateDTO(
                             StatusResponse.ERROR,
-                            e.getMessage() +
-                                    "Por favor, fale com o suporte.",
+                            e.getMessage(),
                             "file"));
         }
 
@@ -291,23 +302,6 @@ public class ProfileService {
                     .status(HttpStatus.OK)
                     .body(new ResponseUrlPhotoDTO(null));
         }
-    }
-
-    public int calcularIdade(String dataNascimento) {
-        // Converter a string de dataNascimento para LocalDate
-        LocalDate nascimento = LocalDate.parse(dataNascimento);
-        LocalDate hoje = LocalDate.now(); // Data atual
-
-        // Calcular a idade
-        int idade = Period.between(nascimento, hoje).getYears();
-
-        // Verifica se a pessoa já fez aniversário esse ano
-        if (hoje.getMonthValue() < nascimento.getMonthValue() ||
-                (hoje.getMonthValue() == nascimento.getMonthValue() && hoje.getDayOfMonth() < nascimento.getDayOfMonth())) {
-            idade--; // Se não, diminui 1 ano
-        }
-
-        return idade;
     }
 
     public Profile atualizarPerfil(Profile profile){
