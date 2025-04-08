@@ -1,4 +1,8 @@
 package projeto.hugo.terapia.authentication.dto;
 
-public record isAuthenticatedResponseDTO(String token) {
+import projeto.hugo.terapia.authentication.enumeracoes.RolesUsers;
+
+import java.util.List;
+
+public record isAuthenticatedResponseDTO(String token, List<RolesUsers> roles) {
 }

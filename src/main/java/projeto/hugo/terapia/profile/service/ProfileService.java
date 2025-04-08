@@ -55,9 +55,11 @@ public class ProfileService {
     public Profile findProfileByUser(Usuario usuario){
         return profileRepository.findByUser(usuario);
     }
-
     public Optional<Profile> findProfileById(UUID uuid){
         return profileRepository.findById(uuid);
+    }
+    public Optional<Profile> findProfileById(String uuid){
+        return profileRepository.findById(UUID.fromString(uuid));
     }
 
     @Transactional
@@ -96,7 +98,7 @@ public class ProfileService {
                             "interests"));
         }
 
-        Usuario findUsuario = userService.encontrarPorId(uuid);
+        Usuario findUsuario = userService.findUserById(uuid);
         if(findUsuario == null){
             return ResponseEntity
                     .status(HttpStatus.BAD_REQUEST)
@@ -246,7 +248,7 @@ public class ProfileService {
 
         UUID uuid = securityUtils.getIdUserByFilterSecurity();
 
-        Usuario findUsuario = userService.encontrarPorId(uuid);
+        Usuario findUsuario = userService.findUserById(uuid);
         if(findUsuario != null){
             Profile findProfile = findProfileByUser(findUsuario);
             if(findProfile != null){

@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PathVariable;
+import projeto.hugo.terapia.profile.model.Profile;
 
 import java.util.List;
 import java.util.Optional;
@@ -35,12 +36,12 @@ public class UserService {
         return false;
     }
 
-    public Usuario encontrarPorId(UUID uuid){
+    public Usuario findUserById(UUID uuid){
         Optional<Usuario> usuario = userRepository.findById(uuid);
         return usuario.orElse(null);
     }
 
-    public Usuario encontrarPorId(String id){
+    public Usuario findUserById(String id){
         UUID uuidUser = UUID.fromString(id);
         Optional<Usuario> usuario = userRepository.findById(uuidUser);
         return usuario.orElse(null);

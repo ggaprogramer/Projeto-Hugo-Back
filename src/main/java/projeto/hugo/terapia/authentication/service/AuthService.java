@@ -25,6 +25,7 @@ import projeto.hugo.terapia.profile.utils.ProfileUtils;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -330,13 +331,30 @@ public class AuthService {
         if(token != null){
             String idUser = tokenService.validateToken(token);
             if(idUser != null) {
-                return ResponseEntity
-                        .status(HttpStatus.OK)
-                        .body(new isAuthenticatedResponseDTO(token));
+                Usuario findUsuario = userService.findUserById(idUser);
+                if(findUsuario != null){
+                    Profile findProfile = profileService.findProfileByUser(findUsuario);
+                    if(findProfile == null){
+                        Professional findProfessional = professionalService.findProfessionalByUser(findUsuario);
+                        if(findProfile == null){
+                            return ResponseEntity
+                                    .status(HttpStatus.BAD_REQUEST)
+                                    .body(new isAuthenticatedResponseDTO(null, null));
+                        } else {
+                            return ResponseEntity
+                                    .status(HttpStatus.OK)
+                                    .body(new isAuthenticatedResponseDTO(idUser, findProfessional.getUser().getRoles()));
+                        }
+                    } else {
+                        return ResponseEntity
+                                .status(HttpStatus.OK)
+                                .body(new isAuthenticatedResponseDTO(idUser, findProfile.getUser().getRoles()));
+                    }
+                }
             }
         };
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
-                .body(new isAuthenticatedResponseDTO(null));
+                .body(new isAuthenticatedResponseDTO(null, null));
     }
 }
