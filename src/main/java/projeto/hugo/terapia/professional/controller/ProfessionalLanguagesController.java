@@ -16,7 +16,7 @@ public class ProfessionalLanguagesController {
 
     private final ProfessionalLanguagesService professionalLanguagesService;
 
-    @PreAuthorize("hasAnyRole('ADMIN')")
+    //@PreAuthorize("hasAnyRole('ADMIN')")
     @PostMapping("/create")
     public List<ProfessionalLanguageDTO> createProfessionalLanguages(
             @RequestBody List<CreateLanguagesDTO> createLanguageDTO){

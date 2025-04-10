@@ -16,7 +16,7 @@ public class ProfessionalApproachesController {
 
     private final ProfessionalApproachesService professionalApproachesService;
 
-    @PreAuthorize("hasAnyRole('ADMIN')")
+    //@PreAuthorize("hasAnyRole('ADMIN')")
     @PostMapping("/create")
     public List<ProfessionalApproachDTO> createProfessionalApproaches(
             @RequestBody List<CreateApproachesDTO> createApproachesDTO){

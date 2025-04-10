@@ -23,7 +23,7 @@ public class Specialty {
     @Column
     private String label;
 
-    @ManyToMany(mappedBy = "professionals")
+    @ManyToMany(mappedBy = "specialties")
     private List<Professional> professionals = new ArrayList<>();
 
 }

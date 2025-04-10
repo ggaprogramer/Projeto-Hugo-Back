@@ -285,7 +285,7 @@ public class ProfessionalService {
                 List<ProfessionalLanguageDTO> professionalLanguages = findProfessional.getLanguages()
                         .stream()
                         .map(language ->
-                                new ProfessionalLanguageDTO(language.getLanguage(), language.getLevel().name()))
+                                new ProfessionalLanguageDTO(language.getValue(), language.getLabel(), language.getLevel().name()))
                         .collect(Collectors.toList());
 
                 String linkPhoto = null;

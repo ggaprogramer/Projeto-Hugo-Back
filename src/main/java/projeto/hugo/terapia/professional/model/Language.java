@@ -14,15 +14,17 @@ public class Language {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column()
-    @Enumerated(EnumType.STRING)
-    private String language;
+    @Column
+    private String value;
+
+    @Column
+    private String label;
 
     @Column()
     @Enumerated(EnumType.STRING)
     private LevelLanguage level;
 
-    @ManyToMany(mappedBy = "professionals")
+    @ManyToMany(mappedBy = "languages")
     private List<Professional> professionals = new ArrayList<>();
 
 }

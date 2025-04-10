@@ -36,7 +36,7 @@ public class Professional {
 
     @ManyToMany
     @JoinTable(
-            name = "professional_interest",
+            name = "professional_interests_relation",
             joinColumns = @JoinColumn(name = "professional_id"),
             inverseJoinColumns = @JoinColumn(name = "interest_id")
     )
@@ -44,7 +44,7 @@ public class Professional {
 
     @ManyToMany
     @JoinTable(
-            name = "professional_approach",
+            name = "professional_approaches_relation",
             joinColumns = @JoinColumn(name = "professional_id"),
             inverseJoinColumns = @JoinColumn(name = "approach_id")
     )
@@ -52,7 +52,7 @@ public class Professional {
 
     @ManyToMany
     @JoinTable(
-            name = "professional_specialty",
+            name = "professional_specialties_relation",
             joinColumns = @JoinColumn(name = "professional_id"),
             inverseJoinColumns = @JoinColumn(name = "specialty_id")
     )
@@ -60,7 +60,7 @@ public class Professional {
 
     @ManyToMany
     @JoinTable(
-            name = "professional_language",
+            name = "professional_languages_relation",
             joinColumns = @JoinColumn(name = "professional_id"),
             inverseJoinColumns = @JoinColumn(name = "language_id")
     )

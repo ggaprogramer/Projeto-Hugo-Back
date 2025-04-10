@@ -43,7 +43,7 @@ public class Profile {
 
     @ManyToMany
     @JoinTable(
-            name = "profile_interest",
+            name = "profile_interests_relation",
             joinColumns = @JoinColumn(name = "profile_id"),
             inverseJoinColumns = @JoinColumn(name = "interest_id")
     )

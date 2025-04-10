@@ -35,11 +35,13 @@ public class ProfessionalLanguagesService {
         List<Language> professionalLanguageList = new ArrayList<>();
 
         for(CreateLanguagesDTO professionalLanguage : createLanguagesDTO) {
-            String languageName = professionalLanguage.language();
-            LevelLanguage levelLanguage = professionalLanguage.levelLanguage();
+            String languageName = professionalLanguage.value();
+            String languageLabel = professionalLanguage.label();
+            LevelLanguage levelLanguage = professionalLanguage.level();
 
             Language language = new Language();
-            language.setLanguage(languageName);
+            language.setValue(languageName);
+            language.setLabel(languageLabel);
             language.setLevel(levelLanguage);
 
             professionalLanguagesRepository.save(language);
@@ -48,7 +50,7 @@ public class ProfessionalLanguagesService {
 
         return professionalLanguageList.stream()
                 .map(language ->
-                        new ProfessionalLanguageDTO(language.getLanguage(), language.getLevel().name()))
+                        new ProfessionalLanguageDTO(language.getValue(), language.getLabel(), language.getLevel().name()))
                 .collect(Collectors.toList());
     }
 
@@ -56,7 +58,7 @@ public class ProfessionalLanguagesService {
         List<Language> professionalLanguages = professionalLanguagesRepository.findAll();
         return professionalLanguages.stream()
                 .map(language ->
-                        new ProfessionalLanguageDTO(language.getLanguage(), language.getLevel().name()))
+                        new ProfessionalLanguageDTO(language.getValue(), language.getLabel(), language.getLevel().name()))
                 .collect(Collectors.toList());
     }
 
