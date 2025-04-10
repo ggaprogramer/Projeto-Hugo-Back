@@ -7,9 +7,9 @@ public enum LevelLanguage {
     AVANÇADO("Avançado"),
     FLUENTE("Fluente");
 
-    private final String nome;
+    private final String name;
 
-    LevelLanguage(String nome) {
-        this.nome = nome;
+    LevelLanguage(String name) {
+        this.name = name;
     }
 }

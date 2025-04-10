@@ -24,3 +24,4 @@ spring:
     account-id: ${ACCOUNT_ID_CLOUDFARE}
     r2-region: ${R2_REGION_CLOUDFARE}
     bucket-profile-photo-name: profile-photo
+    bucket-professional-photo-name: professional-photo

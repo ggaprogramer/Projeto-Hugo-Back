@@ -24,7 +24,7 @@ public class ProfessionalInterestsService {
 
         for(String interest : interests){
             ProfessionalInterests profileInterest = professionalInterestsRepository.findByValue(interest);
-            if(professionalInterestsRepository.findByValue(interest) != null){
+            if(profileInterest != null){
                 professionalInterestsList.add(profileInterest);
             }
         }
@@ -32,7 +32,7 @@ public class ProfessionalInterestsService {
         return professionalInterestsList;
     }
 
-    public List<ProfessionalInterests> createProfessionalInterests(List<CreateProfessionalInterestsDTO> createProfessionalInterestsDTOS){
+    public List<ProfessionalInterestsDTO> createProfessionalInterests(List<CreateProfessionalInterestsDTO> createProfessionalInterestsDTOS){
         List<ProfessionalInterests> professionalInterestsList = new ArrayList<>();
 
         for(CreateProfessionalInterestsDTO professionalInterest : createProfessionalInterestsDTOS) {
@@ -47,7 +47,10 @@ public class ProfessionalInterestsService {
             professionalInterestsList.add(professionalInterests);
         }
 
-        return professionalInterestsList;
+        return professionalInterestsList.stream()
+                .map(interest ->
+                        new ProfessionalInterestsDTO(interest.getValue(), interest.getLabel()))
+                .collect(Collectors.toList());
     }
 
     public List<ProfessionalInterestsDTO> extractProfessionalInterests(){

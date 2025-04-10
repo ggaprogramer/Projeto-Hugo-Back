@@ -1,26 +1,26 @@
 package projeto.hugo.terapia.professional.model;
+
 import jakarta.persistence.*;
 import lombok.Data;
-import projeto.hugo.terapia.professional.enumeracoes.LevelLanguage;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
 @Entity
 @Table
 @Data
-public class Language {
+public class Approach {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column()
-    @Enumerated(EnumType.STRING)
-    private String language;
+    @Column
+    private String value;
 
-    @Column()
-    @Enumerated(EnumType.STRING)
-    private LevelLanguage level;
+    @Column
+    private String label;
 
     @ManyToMany(mappedBy = "professionals")
     private List<Professional> professionals = new ArrayList<>();

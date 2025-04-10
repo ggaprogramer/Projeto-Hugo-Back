@@ -2,14 +2,9 @@ package projeto.hugo.terapia.professional.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
-import org.hibernate.annotations.JdbcTypeCode;
 import projeto.hugo.terapia.authentication.model.Usuario;
-import projeto.hugo.terapia.professional.enumeracoes.Approach;
-import projeto.hugo.terapia.professional.enumeracoes.Specialty;
 import projeto.hugo.terapia.profile.enumeracoes.Gender;
-import projeto.hugo.terapia.profile.model.ProfileInterests;
 
-import java.sql.Types;
 import java.time.LocalDate;
 import java.util.*;
 
@@ -47,16 +42,21 @@ public class Professional {
     )
     private List<ProfessionalInterests> interests = new ArrayList<>();
 
-    // Exclusivos do profissional - INÍCIO
-    @JdbcTypeCode(Types.ARRAY) // Define o tipo JDBC como ARRAY
-    @Column(name = "approach", columnDefinition = "varchar[]")
-    @Enumerated(EnumType.STRING)
-    private List<Approach> approach;
+    @ManyToMany
+    @JoinTable(
+            name = "professional_approach",
+            joinColumns = @JoinColumn(name = "professional_id"),
+            inverseJoinColumns = @JoinColumn(name = "approach_id")
+    )
+    private List<Approach> approaches = new ArrayList<>();
 
-    @JdbcTypeCode(Types.ARRAY) // Define o tipo JDBC como ARRAY
-    @Column(name = "specialty", columnDefinition = "varchar[]")
-    @Enumerated(EnumType.STRING)
-    private List<Specialty> specialty;
+    @ManyToMany
+    @JoinTable(
+            name = "professional_specialty",
+            joinColumns = @JoinColumn(name = "professional_id"),
+            inverseJoinColumns = @JoinColumn(name = "specialty_id")
+    )
+    private List<Specialty> specialties = new ArrayList<>();
 
     @ManyToMany
     @JoinTable(
@@ -64,14 +64,18 @@ public class Professional {
             joinColumns = @JoinColumn(name = "professional_id"),
             inverseJoinColumns = @JoinColumn(name = "language_id")
     )
-    private Set<Language> languages = new HashSet<>();
+    private List<Language> languages = new ArrayList<>();
+
+    @OneToOne(mappedBy = "professional", cascade = CascadeType.ALL, orphanRemoval = true)
+    private ProfessionalPhoto photo;
 
     @Column(name="registration_completed")
     private Boolean registrationCompleted;
 
     @PrePersist
     private void prePersistRegistrationCompleted(){
-        if(this.registrationCompleted == null){
+        if(this.registrationCompleted == null || interests.isEmpty() || approaches.isEmpty()
+                || specialties.isEmpty() || languages.isEmpty()){
             setRegistrationCompleted(false);
         }
     }

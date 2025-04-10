@@ -1,6 +1,5 @@
 package projeto.hugo.terapia.professional.controller;
 
-import jakarta.annotation.security.PermitAll;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -8,7 +7,6 @@ import projeto.hugo.terapia.professional.dto.CreateProfessionalInterestsDTO;
 import projeto.hugo.terapia.professional.dto.ProfessionalInterestsDTO;
 import projeto.hugo.terapia.professional.model.ProfessionalInterests;
 import projeto.hugo.terapia.professional.service.ProfessionalInterestsService;
-import projeto.hugo.terapia.professional.service.ProfessionalService;
 
 import java.util.List;
 
@@ -21,7 +19,7 @@ public class ProfessionalInterestsController {
 
     @PreAuthorize("hasAnyRole('ADMIN')")
     @PostMapping("/create")
-    public List<ProfessionalInterests> createProfessionalInterests(
+    public List<ProfessionalInterestsDTO> createProfessionalInterests(
             @RequestBody List<CreateProfessionalInterestsDTO> createProfessionalInterestsDTOS){
         return professionalInterestsService.createProfessionalInterests(createProfessionalInterestsDTOS);
     }
