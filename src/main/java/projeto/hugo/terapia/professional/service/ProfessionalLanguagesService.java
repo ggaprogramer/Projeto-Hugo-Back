@@ -62,4 +62,8 @@ public class ProfessionalLanguagesService {
                 .collect(Collectors.toList());
     }
 
+    public List<LevelLanguage> extractLevelLanguages(){
+        return List.of(LevelLanguage.values());
+    }
+
 }

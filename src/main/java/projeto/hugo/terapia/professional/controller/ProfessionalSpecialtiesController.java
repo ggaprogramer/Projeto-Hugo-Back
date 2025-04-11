@@ -16,7 +16,7 @@ public class ProfessionalSpecialtiesController {
 
     private final ProfessionalSpecialtiesService professionalSpecialtiesService;
 
-    //@PreAuthorize("hasAnyRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN')")
     @PostMapping("/create")
     public List<ProfessionalSpecialtyDTO> createProfessionalSpecialties(
             @RequestBody List<CreateSpecialtiesDTO> createSpecialityDTO){

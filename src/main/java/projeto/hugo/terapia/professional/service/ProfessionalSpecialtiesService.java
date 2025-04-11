@@ -55,7 +55,7 @@ public class ProfessionalSpecialtiesService {
         List<Specialty> professionalSpecialties = professionalSpecialtiesRepository.findAll();
         return professionalSpecialties.stream()
                 .map(specialty ->
-                        new ProfessionalSpecialtyDTO(specialty.getValue(), specialty.getLabel()))
+                        new ProfessionalSpecialtyDTO(specialty.getLabel(), specialty.getValue()))
                 .collect(Collectors.toList());
     }
 

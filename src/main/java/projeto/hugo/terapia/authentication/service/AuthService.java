@@ -336,7 +336,7 @@ public class AuthService {
                     Profile findProfile = profileService.findProfileByUser(findUsuario);
                     if(findProfile == null){
                         Professional findProfessional = professionalService.findProfessionalByUser(findUsuario);
-                        if(findProfile == null){
+                        if(findProfessional == null){
                             return ResponseEntity
                                     .status(HttpStatus.BAD_REQUEST)
                                     .body(new isAuthenticatedResponseDTO(null, null));

@@ -22,7 +22,6 @@ public class ProfessionalController {
     private final ProfessionalService professionalService;
 
 
-    @PreAuthorize("hasAnyRole('PROFESSIONAL')")
     @GetMapping
     public ResponseEntity<ProfessionalInfo> getInfoProfessional(){
         return professionalService.getInfoProfessional();
@@ -34,7 +33,6 @@ public class ProfessionalController {
         return professionalService.updateProfessional(professionalUpdateDTO);
     }
 
-    @PreAuthorize("hasAnyRole('PROFESSIONAL')")
     @GetMapping("/photo/{uuid}")
     public ResponseEntity<ResponseUrlPhotoDTO> getUrlPhoto(@PathVariable UUID uuid){
         return professionalService.getUrlPhoto(uuid);
