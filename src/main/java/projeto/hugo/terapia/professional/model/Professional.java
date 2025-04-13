@@ -74,9 +74,18 @@ public class Professional {
 
     @PrePersist
     private void prePersistRegistrationCompleted(){
-        if(this.registrationCompleted == null || interests.isEmpty() || approaches.isEmpty()
+        if(this.registrationCompleted == null){
+            setRegistrationCompleted(false);
+        }
+    }
+
+    @PreUpdate
+    private void preUpdateRegistrationCompleted(){
+        if(interests.isEmpty() || approaches.isEmpty()
                 || specialties.isEmpty() || languages.isEmpty()){
             setRegistrationCompleted(false);
+        } else {
+            setRegistrationCompleted(true);
         }
     }
     // Exclusivos do profissional - FIM
