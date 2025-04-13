@@ -1,5 +1,8 @@
 package projeto.hugo.terapia.professional.enumeracoes;
 
+import lombok.Getter;
+
+@Getter
 public enum LevelLanguage {
     NATIVO("Nativo"),
     BASICO("Básico"),

@@ -15,7 +15,7 @@ public record ProfessionalInfo(
         String linkPhoto,
         List<ProfessionalInterestsDTO> interests,
         List<ProfessionalApproachDTO> approaches,
-        List<ProfessionalSpecialtyDTO> specialities,
+        List<ProfessionalSpecialtyDTO> specialties,
         List<ProfessionalLanguageDTO> languages,
         Gender gender,
         Boolean confirmacaoEmail,

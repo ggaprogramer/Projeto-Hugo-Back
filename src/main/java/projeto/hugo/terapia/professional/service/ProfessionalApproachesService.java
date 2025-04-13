@@ -50,7 +50,7 @@ public class ProfessionalApproachesService {
 
         return professionalApproachesList.stream()
                 .map(approach ->
-                        new ProfessionalApproachDTO(approach.getValue(), approach.getLabel()))
+                        new ProfessionalApproachDTO(approach.getLabel(), approach.getValue()))
                 .collect(Collectors.toList());
     }
 
@@ -58,7 +58,7 @@ public class ProfessionalApproachesService {
         List<Approach> professionalApproaches = professionalApproachesRepository.findAll();
         return professionalApproaches.stream()
                 .map(approach ->
-                        new ProfessionalApproachDTO(approach.getValue(), approach.getLabel()))
+                        new ProfessionalApproachDTO(approach.getLabel(), approach.getValue()))
                 .collect(Collectors.toList());
     }
 

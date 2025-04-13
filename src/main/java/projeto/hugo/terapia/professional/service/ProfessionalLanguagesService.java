@@ -58,7 +58,7 @@ public class ProfessionalLanguagesService {
         List<Language> professionalLanguages = professionalLanguagesRepository.findAll();
         return professionalLanguages.stream()
                 .map(language ->
-                        new ProfessionalLanguageDTO(language.getValue(), language.getLabel(), language.getLevel().name()))
+                        new ProfessionalLanguageDTO(language.getValue(), language.getLabel(), language.getLevel().getName()))
                 .collect(Collectors.toList());
     }
 

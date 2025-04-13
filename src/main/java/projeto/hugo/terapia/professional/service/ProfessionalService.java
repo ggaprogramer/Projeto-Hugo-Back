@@ -273,13 +273,13 @@ public class ProfessionalService {
                 List<ProfessionalApproachDTO> professionalApproachs = findProfessional.getApproaches()
                         .stream()
                         .map(approach ->
-                                new ProfessionalApproachDTO(approach.getValue(), approach.getLabel()))
+                                new ProfessionalApproachDTO(approach.getLabel(), approach.getValue()))
                         .collect(Collectors.toList());
 
                 List<ProfessionalSpecialtyDTO> professionalSpecialties = findProfessional.getSpecialties()
                         .stream()
                         .map(speciality ->
-                                new ProfessionalSpecialtyDTO(speciality.getValue(), speciality.getLabel()))
+                                new ProfessionalSpecialtyDTO(speciality.getLabel(), speciality.getValue()))
                         .collect(Collectors.toList());
 
                 List<ProfessionalLanguageDTO> professionalLanguages = findProfessional.getLanguages()
