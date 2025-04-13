@@ -1,19 +1,20 @@
 package projeto.hugo.terapia.profile.model;
 
-import projeto.hugo.terapia.authentication.enumeracoes.RolesUsers;
+import lombok.Getter;
+import lombok.Setter;
 import projeto.hugo.terapia.authentication.model.Usuario;
-import projeto.hugo.terapia.profile.enumeracoes.ProfileInterests;
+import projeto.hugo.terapia.profile.enumeracoes.Gender;
 import jakarta.persistence.*;
-import lombok.Data;
-import org.hibernate.annotations.JdbcTypeCode;
 
-import java.sql.Types;
+import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 @Entity
 @Table
-@Data
+@Getter
+@Setter
 public class Profile {
 
     @Id
@@ -21,18 +22,31 @@ public class Profile {
     private UUID id;
 
     @Column
+    private String name;
+
+    @Column
     private String phone;
 
     @Column
-    private String age;
+    private LocalDate dateBirth;
 
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "user_id")
     private Usuario user;
 
-    @JdbcTypeCode(Types.ARRAY) // Define o tipo JDBC como ARRAY
-    @Column(name = "interests", columnDefinition = "varchar[]")
+    @Column
     @Enumerated(EnumType.STRING)
-    private List<ProfileInterests> interests;
+    private Gender gender;
+
+    @OneToOne(mappedBy = "profile", cascade = CascadeType.ALL, orphanRemoval = true)
+    private ProfilePhoto photo;
+
+    @ManyToMany
+    @JoinTable(
+            name = "profile_interests_relation",
+            joinColumns = @JoinColumn(name = "profile_id"),
+            inverseJoinColumns = @JoinColumn(name = "interest_id")
+    )
+    private List<ProfileInterests> interests = new ArrayList<>();
 
 }

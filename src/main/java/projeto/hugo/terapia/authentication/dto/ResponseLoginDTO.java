@@ -1,7 +1,7 @@
 package projeto.hugo.terapia.authentication.dto;
 
 import projeto.hugo.terapia.authentication.enumeracoes.StatusResponse;
-import org.springframework.http.HttpStatus;
+import projeto.hugo.terapia.profile.enumeracoes.TypeProfile;
 
-public record ResponseLoginDTO (StatusResponse status, String message, String type, String token) {
+public record ResponseLoginDTO (StatusResponse status, String message, String type, String token, TypeProfile typeProfile) {
 }

@@ -99,6 +99,13 @@
 			<optional>true</optional>
 		</dependency>
 
+		<!-- CloudFare / Amazon AWS -->
+		<dependency>
+			<groupId>software.amazon.awssdk</groupId>
+			<artifactId>s3</artifactId>
+			<version>2.20.11</version>
+		</dependency>
+
 		<!-- Hypersistence -->
 		<dependency>
 			<groupId>io.hypersistence</groupId>

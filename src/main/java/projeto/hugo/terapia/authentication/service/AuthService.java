@@ -1,23 +1,31 @@
 package projeto.hugo.terapia.authentication.service;
 
+import org.springframework.transaction.annotation.Transactional;
 import projeto.hugo.terapia.authentication.dto.*;
 import projeto.hugo.terapia.authentication.enumeracoes.RolesUsers;
 import projeto.hugo.terapia.authentication.enumeracoes.StatusResponse;
 import projeto.hugo.terapia.authentication.model.Usuario;
 import projeto.hugo.terapia.authentication.security.TokenService;
-import projeto.hugo.terapia.profile.enumeracoes.ProfileInterests;
+import projeto.hugo.terapia.professional.model.Professional;
+import projeto.hugo.terapia.professional.service.ProfessionalInterestsService;
+import projeto.hugo.terapia.professional.service.ProfessionalService;
+import projeto.hugo.terapia.profile.enumeracoes.Gender;
+import projeto.hugo.terapia.profile.enumeracoes.TypeProfile;
 import projeto.hugo.terapia.profile.model.Profile;
+import projeto.hugo.terapia.profile.service.ProfileInterestsService;
 import projeto.hugo.terapia.profile.service.ProfileService;
-import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import projeto.hugo.terapia.profile.utils.ProfileUtils;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -27,18 +35,10 @@ public class AuthService {
     private final PasswordEncoder encoder;
     private final TokenService tokenService;
     private final ProfileService profileService;
-
-    public String getCookie(String name, HttpServletRequest request) {
-        Cookie[] cookies = request.getCookies();
-        if (cookies != null) {
-            for (Cookie cookie : cookies) {
-                if (name.equals(cookie.getName())) {
-                    return cookie.getValue();
-                }
-            }
-        }
-        return null;
-    }
+    private final ProfessionalService professionalService;
+    private final ProfileInterestsService profileInterestsService;
+    private final ProfessionalInterestsService professionalInterestsService;
+    private final ProfileUtils profileUtils;
 
     public ResponseEntity<ResponseLoginDTO> login(LoginDTO loginDTO, HttpServletResponse response){
         String email = loginDTO.email();
@@ -52,7 +52,7 @@ public class AuthService {
                     .body(new ResponseLoginDTO(
                             StatusResponse.ERROR,
                             "Nenhum e-mail foi enviado.",
-                            "email", null
+                            "email", null, null
                     ));
         }
 
@@ -62,7 +62,7 @@ public class AuthService {
                     .body(new ResponseLoginDTO(
                             StatusResponse.ERROR,
                             "Nenhuma senha foi enviada.",
-                            "password", null
+                            "password", null, null
                     ));
         }
 
@@ -73,12 +73,33 @@ public class AuthService {
                     .body(new ResponseLoginDTO(
                             StatusResponse.ERROR,
                             "O e-mail enviado não está atrelado a nenhum usuário.",
-                            "email", null
+                            "email", null, null
                     ));
         }
 
+        Profile profile = profileService.findProfileByUser(usuario);
+        Professional professional = null;
+        if(profile == null){
+            professional = professionalService.findProfessionalByUser(usuario);
+        }
+        if(profile == null && professional == null){
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(new ResponseLoginDTO(
+                            StatusResponse.ERROR,
+                            "Esse usuário não está ligado a nenhum perfil e a nenhum profissional. " +
+                                    "Por favor, fale com o suporte.",
+                            "system", null, null
+                    ));
+        }
+
+        TypeProfile typeProfile = TypeProfile.PROFILE;
+        if(profile == null){
+            typeProfile = TypeProfile.PROFESSIONAL;
+        }
+
         String senhaCriptografada = usuario.getPassword();
-        boolean senhasBatem = encoder.matches(password, senhaCriptografada);
+        boolean senhasBatem = userService.matchesPassword(password, senhaCriptografada);
 
         if(!senhasBatem){
             return ResponseEntity
@@ -86,7 +107,7 @@ public class AuthService {
                     .body(new ResponseLoginDTO(
                             StatusResponse.ERROR,
                             "Acesso negado. A senha está incorreta.",
-                            "password", null
+                            "password", null, null
                     ));
         }
 
@@ -96,30 +117,45 @@ public class AuthService {
 
         try {
             String token = tokenService.generateToken(usuario, expirationToken);
+            usuario.setLastLogin(LocalDateTime.now());
+            userService.atualizarUsuario(usuario);
             return ResponseEntity
                     .status(HttpStatus.OK)
                     .body(new ResponseLoginDTO(
                             StatusResponse.SUCCESS,
-                            "Login feito com sucesso.", null, token));
+                            "Login feito com sucesso.", null, token, typeProfile));
         } catch (Exception e) {
             return ResponseEntity
                     .status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(new ResponseLoginDTO(
                             StatusResponse.ERROR,
                             "Erro ao gerar o token.",
-                            "system", null));
+                            "system", null, null));
         }
     }
 
+    @Transactional
     public ResponseEntity<ResponseRegisterDTO> registro(RegistroDTO registroDTO){
+        String name = registroDTO.name();
         String username = registroDTO.username();
         String email = registroDTO.email();
         String password1 = registroDTO.password1();
         String password2 = registroDTO.password2();
         List<RolesUsers> roles = registroDTO.roles();
         String phone = registroDTO.phone();
-        String age = registroDTO.age();
-        List<ProfileInterests> interests = registroDTO.interests();
+        String dateBirth = registroDTO.dateBirth();
+        List<String> interests = registroDTO.interests();
+        Gender gender = registroDTO.gender();
+        TypeProfile typeProfile = registroDTO.typeProfile();
+
+        if(name == null){
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(new ResponseRegisterDTO(
+                            StatusResponse.ERROR,
+                            "name",
+                            "Nenhum nome foi enviado."));
+        }
 
         if(username == null){
             return ResponseEntity
@@ -175,13 +211,13 @@ public class AuthService {
                             "Nenhum número de celular foi enviado."));
         }
 
-        if(age == null){
+        if(dateBirth == null){
             return ResponseEntity
                     .status(HttpStatus.BAD_REQUEST)
                     .body(new ResponseRegisterDTO(
                             StatusResponse.ERROR,
-                            "age",
-                            "Nenhuma idade foi enviada."));
+                            "date-birth",
+                            "Nenhuma data de aniversário foi enviada."));
         }
 
         if(interests == null || interests.isEmpty()){
@@ -191,6 +227,24 @@ public class AuthService {
                             StatusResponse.ERROR,
                             "interests",
                             "Nenhum interesse foi enviado."));
+        }
+
+        if(gender == null){
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(new ResponseRegisterDTO(
+                            StatusResponse.ERROR,
+                            "gender",
+                            "Nenhum gênero foi enviado."));
+        }
+
+        if(typeProfile == null){
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(new ResponseRegisterDTO(
+                            StatusResponse.ERROR,
+                            "type-profile",
+                            "Nenhum tipo de perfil foi enviado."));
         }
 
         Usuario usuarioEmail = userService.encontrarPorEmail(email);
@@ -231,13 +285,38 @@ public class AuthService {
                             "A senha precisa ter no mínimo 8 caracteres."));
         }
 
+        LocalDate dateFormated = LocalDate.parse(dateBirth);
+
+        Integer age = profileUtils.calcularIdade(dateBirth);
+        if(age < 15) {
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(new ResponseRegisterDTO(
+                            StatusResponse.ERROR,
+                            "date-birth",
+                            "Você tem que ter no mínimo 15 anos para acessar o site."));
+        }
+
         Usuario novoUsuario = userService.salvarUsuario(registroDTO);
-        Profile profile = new Profile();
-        profile.setUser(novoUsuario);
-        profile.setPhone(phone);
-        profile.setAge(age);
-        profile.setInterests(interests);
-        profileService.saveProfile(profile);
+        if(typeProfile.equals(TypeProfile.PROFILE)){
+            Profile profile = new Profile();
+            profile.setUser(novoUsuario);
+            profile.setName(name);
+            profile.setPhone(phone);
+            profile.setDateBirth(dateFormated);
+            profile.setGender(gender);
+            profile.setInterests(profileInterestsService.getInterestsProfile(interests));
+            profileService.saveProfile(profile);
+        } else {
+            Professional professional = new Professional();
+            professional.setUser(novoUsuario);
+            professional.setName(name);
+            professional.setPhone(phone);
+            professional.setDateBirth(dateFormated);
+            professional.setGender(gender);
+            professional.setInterests(professionalInterestsService.getInterestsProfessional(interests));
+            professionalService.saveProfessional(professional);
+        }
 
         return ResponseEntity
                 .status(HttpStatus.OK)
@@ -247,13 +326,35 @@ public class AuthService {
                         "Perfil criado com sucesso."));
     }
 
-    public ResponseEntity<?> isAuthenticated(IsAuthenticatedDTO isAuthenticatedDTO) {
+    public ResponseEntity<isAuthenticatedResponseDTO> isAuthenticated(isAuthenticatedDTO isAuthenticatedDTO) {
         String token = isAuthenticatedDTO.token();
         if(token != null){
             String idUser = tokenService.validateToken(token);
-            if(idUser != null) return ResponseEntity.status(HttpStatus.OK).body(null);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+            if(idUser != null) {
+                Usuario findUsuario = userService.findUserById(idUser);
+                if(findUsuario != null){
+                    Profile findProfile = profileService.findProfileByUser(findUsuario);
+                    if(findProfile == null){
+                        Professional findProfessional = professionalService.findProfessionalByUser(findUsuario);
+                        if(findProfessional == null){
+                            return ResponseEntity
+                                    .status(HttpStatus.BAD_REQUEST)
+                                    .body(new isAuthenticatedResponseDTO(null, null));
+                        } else {
+                            return ResponseEntity
+                                    .status(HttpStatus.OK)
+                                    .body(new isAuthenticatedResponseDTO(idUser, findProfessional.getUser().getRoles()));
+                        }
+                    } else {
+                        return ResponseEntity
+                                .status(HttpStatus.OK)
+                                .body(new isAuthenticatedResponseDTO(idUser, findProfile.getUser().getRoles()));
+                    }
+                }
+            }
         };
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(new isAuthenticatedResponseDTO(null, null));
     }
 }

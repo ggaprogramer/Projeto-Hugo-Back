@@ -1,15 +1,13 @@
 package projeto.hugo.terapia.authentication.service;
 
-import projeto.hugo.terapia.authentication.dto.LoginDTO;
 import projeto.hugo.terapia.authentication.dto.RegistroDTO;
 import projeto.hugo.terapia.authentication.model.Usuario;
 import projeto.hugo.terapia.authentication.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
+import projeto.hugo.terapia.profile.model.Profile;
 
 import java.util.List;
 import java.util.Optional;
@@ -38,11 +36,12 @@ public class UserService {
         return false;
     }
 
-    public Usuario encontrarPorId(UUID uuid){
+    public Usuario findUserById(UUID uuid){
         Optional<Usuario> usuario = userRepository.findById(uuid);
         return usuario.orElse(null);
     }
-    public Usuario encontrarPorId(String id){
+
+    public Usuario findUserById(String id){
         UUID uuidUser = UUID.fromString(id);
         Optional<Usuario> usuario = userRepository.findById(uuidUser);
         return usuario.orElse(null);
@@ -71,6 +70,21 @@ public class UserService {
         usuario.setUsername(registroDTO.username());
         usuario.setRoles(registroDTO.roles());
 
+        return userRepository.save(usuario);
+    }
+
+    public void updatePasswordUsuario(Usuario usuario, String password1){
+        String passwordCriptografada = encoder.encode(password1);
+        usuario.setPassword(passwordCriptografada);
+
+        userRepository.save(usuario);
+    }
+
+    public Boolean matchesPassword(String password, String senhaCriptografada){
+        return encoder.matches(password, senhaCriptografada);
+    }
+
+    public Usuario atualizarUsuario(Usuario usuario){
         return userRepository.save(usuario);
     }
 
