@@ -2,6 +2,7 @@ package projeto.hugo.terapia.professional.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -14,6 +15,7 @@ import projeto.hugo.terapia.authentication.utils.SecurityUtils;
 import projeto.hugo.terapia.cloudfare.service.CloudfareService;
 import projeto.hugo.terapia.professional.dto.*;
 import projeto.hugo.terapia.professional.model.Professional;
+import projeto.hugo.terapia.professional.model.ProfessionalInterests;
 import projeto.hugo.terapia.professional.model.ProfessionalPhoto;
 import projeto.hugo.terapia.professional.repository.ProfessionalRepository;
 import projeto.hugo.terapia.profile.dto.*;
@@ -25,10 +27,7 @@ import projeto.hugo.terapia.profile.utils.ProfileUtils;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.time.format.DateTimeFormatter;
-import java.util.Base64;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -261,59 +260,11 @@ public class ProfessionalService {
         if(findUsuario != null){
             Professional findProfessional = findProfessionalByUser(findUsuario);
             if(findProfessional != null){
-                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-                String dataFormatada = findProfessional.getDateBirth().format(formatter);
-
-                List<ProfessionalInterestsDTO> professionalInterests = findProfessional.getInterests()
-                        .stream()
-                        .map(interest ->
-                                new ProfessionalInterestsDTO(interest.getValue(), interest.getLabel()))
-                        .collect(Collectors.toList());
-
-                List<ProfessionalApproachDTO> professionalApproachs = findProfessional.getApproaches()
-                        .stream()
-                        .map(approach ->
-                                new ProfessionalApproachDTO(approach.getLabel(), approach.getValue()))
-                        .collect(Collectors.toList());
-
-                List<ProfessionalSpecialtyDTO> professionalSpecialties = findProfessional.getSpecialties()
-                        .stream()
-                        .map(speciality ->
-                                new ProfessionalSpecialtyDTO(speciality.getLabel(), speciality.getValue()))
-                        .collect(Collectors.toList());
-
-                List<ProfessionalLanguageDTO> professionalLanguages = findProfessional.getLanguages()
-                        .stream()
-                        .map(language ->
-                                new ProfessionalLanguageDTO(language.getValue(), language.getLabel(), language.getLevel().name()))
-                        .collect(Collectors.toList());
-
-                String linkPhoto = null;
-                if(findProfessional.getPhoto() != null){
-                    linkPhoto = cloudfareService.generateLinkFile(
-                            findProfessional.getPhoto().getBucket(),
-                            findProfessional.getPhoto().getName()
-                    );
-                }
+                ProfessionalInfo professionalInfo = this.professionalToDTO(findProfessional);
 
                 return ResponseEntity
                         .status(HttpStatus.OK)
-                        .body(new ProfessionalInfo(
-                                findProfessional.getId(),
-                                findProfessional.getName(),
-                                findUsuario.getUsername(),
-                                findUsuario.getEmail(),
-                                findProfessional.getPhone(),
-                                dataFormatada,
-                                linkPhoto,
-                                professionalInterests,
-                                professionalApproachs,
-                                professionalSpecialties,
-                                professionalLanguages,
-                                findProfessional.getGender(),
-                                findUsuario.getConfirmacaoEmail(),
-                                findProfessional.getRegistrationCompleted()
-                        ));
+                        .body(professionalInfo);
             }
         }
         return ResponseEntity
@@ -340,6 +291,197 @@ public class ProfessionalService {
 
     public Professional atualizarProfessional(Professional professional){
         return professionalRepository.save(professional);
+    }
+
+    public ProfessionalInfo professionalToDTO(Professional professional){
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        String dataFormatada = professional.getDateBirth().format(formatter);
+
+        List<ProfessionalInterestsDTO> professionalInterests = professional.getInterests()
+                .stream()
+                .map(interest ->
+                        new ProfessionalInterestsDTO(interest.getValue(), interest.getLabel()))
+                .collect(Collectors.toList());
+
+        List<ProfessionalApproachDTO> professionalApproachs = professional.getApproaches()
+                .stream()
+                .map(approach ->
+                        new ProfessionalApproachDTO(approach.getLabel(), approach.getValue()))
+                .collect(Collectors.toList());
+
+        List<ProfessionalSpecialtyDTO> professionalSpecialties = professional.getSpecialties()
+                .stream()
+                .map(speciality ->
+                        new ProfessionalSpecialtyDTO(speciality.getLabel(), speciality.getValue()))
+                .collect(Collectors.toList());
+
+        List<ProfessionalLanguageDTO> professionalLanguages = professional.getLanguages()
+                .stream()
+                .map(language ->
+                        new ProfessionalLanguageDTO(language.getValue(), language.getLabel(), language.getLevel().name()))
+                .collect(Collectors.toList());
+
+        String linkPhoto = null;
+        if(professional.getPhoto() != null){
+            linkPhoto = cloudfareService.generateLinkFile(
+                    professional.getPhoto().getBucket(),
+                    professional.getPhoto().getName()
+            );
+        }
+
+        return new ProfessionalInfo(
+                professional.getId(),
+                professional.getName(),
+                professional.getUser().getUsername(),
+                professional.getUser().getEmail(),
+                professional.getPhone(),
+                dataFormatada,
+                linkPhoto,
+                professionalInterests,
+                professionalApproachs,
+                professionalSpecialties,
+                professionalLanguages,
+                professional.getGender(),
+                professional.getUser().getConfirmacaoEmail(),
+                professional.getRegistrationCompleted()
+        );
+    }
+
+    public Page<ProfessionalInfo> listFilterProfessionals(ProfessionalFilterDTO professionalFilterDTO) {
+        Integer pagina = professionalFilterDTO.pagina();
+        Integer tamanho = professionalFilterDTO.tamanho();
+        String direcao = professionalFilterDTO.direcao();
+        String ordenarPor = professionalFilterDTO.ordenarPor();
+        String nome = professionalFilterDTO.nome();
+        List<String> abordagens = professionalFilterDTO.abordagens();
+        List<String> especialidades = professionalFilterDTO.especialidades();
+        List<String> interesses = professionalFilterDTO.interesses();
+        List<String> idiomas = professionalFilterDTO.idiomas();
+        Double precoMinimo = professionalFilterDTO.precoMinimo();
+        Double precoMaximo = professionalFilterDTO.precoMaximo();
+        GenderFilter genero = professionalFilterDTO.genero();
+        List<Disponibilidade> disponibilidades = professionalFilterDTO.disponibilidade();
+
+        Set<Professional> professionals = new HashSet<>();
+
+        /*List<ProfessionalInterestsDTO> professionalInterestsAll = professionalInterestsService.extractProfessionalInterests();
+        List<ProfessionalSpecialtyDTO> professionalSpecialtyAll = professionalSpecialtiesService.extractProfessionalSpecialties();
+        List<ProfessionalApproachDTO> professionalApproachAll = professionalApproachesService.extractProfessionalApproaches();
+        List<ProfessionalLanguageDTO> professionalLanguageAll = professionalLanguagesService.extractProfessionalLanguages();
+
+        if(interesses != null && !interesses.isEmpty()){
+            for(ProfessionalInterestsDTO interest: professionalInterestsAll){
+                for(String interestBody : interesses) {
+                    if(interest.value().equals(interestBody)){
+                        professionals.add();
+                    }
+                }
+            }
+        }*/
+
+        // 1. Buscar todas as entidades
+        if (nome != null) {
+            List<Professional> professionalsFilterName = professionalRepository.
+                    findByNameContainingIgnoreCase(nome);
+            if (professionalsFilterName != null && !professionalsFilterName.isEmpty()) {
+                professionals.addAll(professionalsFilterName);
+            }
+        }
+
+        if (genero != null && !genero.equals(GenderFilter.TODOS)) {
+            Gender gender;
+            if(genero == GenderFilter.MASCULINO) {
+                gender = Gender.MASCULINO;
+            } else if(genero == GenderFilter.FEMININO) {
+                gender = Gender.FEMININO;
+            } else {
+                gender = Gender.OUTROS;
+            }
+            List<Professional> professionalsFilterGender = professionalRepository.
+                    findByGender(gender);
+            if (professionalsFilterGender != null && !professionalsFilterGender.isEmpty()) {
+                professionals.addAll(professionalsFilterGender);
+            }
+        }
+
+        if (interesses != null && !interesses.isEmpty()) {
+            List<Professional> professionalsFilterInterests = professionalRepository.
+                    findByInterests(professionalInterestsService.getInterestsProfessional(interesses));
+            if (professionalsFilterInterests != null && !professionalsFilterInterests.isEmpty()) {
+                professionals.addAll(professionalsFilterInterests);
+            }
+        }
+
+        if (abordagens != null && !abordagens.isEmpty()) {
+            List<Professional> professionalsFilterApproaches = professionalRepository.
+                    findByApproaches(professionalApproachesService.getApproachesProfessional(abordagens));
+            if (professionalsFilterApproaches != null && !professionalsFilterApproaches.isEmpty()) {
+                professionals.addAll(professionalsFilterApproaches);
+            }
+        }
+
+        if (especialidades != null && !especialidades.isEmpty()) {
+            List<Professional> professionalsFilterSpecialties = professionalRepository.
+                    findBySpecialties(professionalSpecialtiesService.getSpecialtiesProfessional(especialidades));
+            if (professionalsFilterSpecialties != null && !professionalsFilterSpecialties.isEmpty()) {
+                professionals.addAll(professionalsFilterSpecialties);
+            }
+        }
+
+        if (idiomas != null && !idiomas.isEmpty()) {
+            List<Professional> professionalsFilterLanguages = professionalRepository.
+                    findByLanguages(professionalLanguagesService.getLanguagesProfessional(idiomas));
+            if (professionalsFilterLanguages != null && !professionalsFilterLanguages.isEmpty()) {
+                professionals.addAll(professionalsFilterLanguages);
+            }
+        }
+
+        Pageable pageable = PageRequest.of(pagina, tamanho, Sort.by(Sort.Direction.fromString(direcao), ordenarPor));
+
+        // 2. Mapear para DTO
+        List<ProfessionalInfo> professionalsInfo = professionals.stream()
+                .map(this::professionalToDTO)
+                .collect(Collectors.toList());
+
+        // 3. Ordenar na memória
+        if (pageable.getSort().isSorted()) {
+            for (var order : pageable.getSort()) {
+                Comparator<ProfessionalInfo> comparator = getComparator(order.getProperty());
+
+                if (comparator != null) {
+                    if (order.isDescending()) {
+                        comparator = comparator.reversed();
+                    }
+                    professionalsInfo = professionalsInfo.stream()
+                            .sorted(comparator)
+                            .collect(Collectors.toList());
+                }
+            }
+        }
+
+        // 4. Paginar na memória
+        int pageSize = pageable.getPageSize();
+        int currentPage = pageable.getPageNumber();
+        int startItem = currentPage * pageSize;
+        List<ProfessionalInfo> pagedList;
+
+        if (professionalsInfo.size() < startItem) {
+            pagedList = List.of();
+        } else {
+            int toIndex = Math.min(startItem + pageSize, professionalsInfo.size());
+            pagedList = professionalsInfo.subList(startItem, toIndex);
+        }
+
+        return new PageImpl<>(pagedList, pageable, professionalsInfo.size());
+    }
+
+    private Comparator<ProfessionalInfo> getComparator(String property) {
+        return switch (property) {
+            case "id" -> Comparator.comparing(ProfessionalInfo::uuid);
+            case "name" -> Comparator.comparing(ProfessionalInfo::name, String.CASE_INSENSITIVE_ORDER);
+            case "email" -> Comparator.comparing(ProfessionalInfo::email, String.CASE_INSENSITIVE_ORDER);
+            default -> null;
+        };
     }
 
 }

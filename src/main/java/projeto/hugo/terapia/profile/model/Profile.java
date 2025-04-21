@@ -49,4 +49,23 @@ public class Profile {
     )
     private List<ProfileInterests> interests = new ArrayList<>();
 
+    @Column(name="registration_completed")
+    private Boolean registrationCompleted;
+
+    @PrePersist
+    private void prePersistRegistrationCompleted(){
+        if(this.registrationCompleted == null){
+            setRegistrationCompleted(false);
+        }
+    }
+
+    @PreUpdate
+    private void preUpdateRegistrationCompleted(){
+        if(photo == null || interests.isEmpty()){
+            setRegistrationCompleted(false);
+        } else {
+            setRegistrationCompleted(true);
+        }
+    }
+
 }

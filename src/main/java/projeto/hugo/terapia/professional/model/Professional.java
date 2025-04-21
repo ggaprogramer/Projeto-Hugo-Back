@@ -81,7 +81,7 @@ public class Professional {
 
     @PreUpdate
     private void preUpdateRegistrationCompleted(){
-        if(interests.isEmpty() || approaches.isEmpty()
+        if(photo == null || interests.isEmpty() || approaches.isEmpty()
                 || specialties.isEmpty() || languages.isEmpty()){
             setRegistrationCompleted(false);
         } else {
