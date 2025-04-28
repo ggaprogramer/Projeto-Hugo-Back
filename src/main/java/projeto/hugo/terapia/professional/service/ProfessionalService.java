@@ -364,23 +364,8 @@ public class ProfessionalService {
 
         Set<Professional> professionals = new HashSet<>();
 
-        /*List<ProfessionalInterestsDTO> professionalInterestsAll = professionalInterestsService.extractProfessionalInterests();
-        List<ProfessionalSpecialtyDTO> professionalSpecialtyAll = professionalSpecialtiesService.extractProfessionalSpecialties();
-        List<ProfessionalApproachDTO> professionalApproachAll = professionalApproachesService.extractProfessionalApproaches();
-        List<ProfessionalLanguageDTO> professionalLanguageAll = professionalLanguagesService.extractProfessionalLanguages();
-
-        if(interesses != null && !interesses.isEmpty()){
-            for(ProfessionalInterestsDTO interest: professionalInterestsAll){
-                for(String interestBody : interesses) {
-                    if(interest.value().equals(interestBody)){
-                        professionals.add();
-                    }
-                }
-            }
-        }*/
-
         // 1. Buscar todas as entidades
-        if (nome != null) {
+        if (nome != null && !nome.isBlank()) {
             List<Professional> professionalsFilterName = professionalRepository.
                     findByNameContainingIgnoreCase(nome);
             if (professionalsFilterName != null && !professionalsFilterName.isEmpty()) {
@@ -406,7 +391,7 @@ public class ProfessionalService {
 
         if (interesses != null && !interesses.isEmpty()) {
             List<Professional> professionalsFilterInterests = professionalRepository.
-                    findByInterests(professionalInterestsService.getInterestsProfessional(interesses));
+                    findByInterestsIn(professionalInterestsService.getInterestsProfessionalUUID(interesses));
             if (professionalsFilterInterests != null && !professionalsFilterInterests.isEmpty()) {
                 professionals.addAll(professionalsFilterInterests);
             }
@@ -414,7 +399,7 @@ public class ProfessionalService {
 
         if (abordagens != null && !abordagens.isEmpty()) {
             List<Professional> professionalsFilterApproaches = professionalRepository.
-                    findByApproaches(professionalApproachesService.getApproachesProfessional(abordagens));
+                    findByApproachesIn(professionalApproachesService.getApproachesProfessionalUUID(abordagens));
             if (professionalsFilterApproaches != null && !professionalsFilterApproaches.isEmpty()) {
                 professionals.addAll(professionalsFilterApproaches);
             }
@@ -422,7 +407,7 @@ public class ProfessionalService {
 
         if (especialidades != null && !especialidades.isEmpty()) {
             List<Professional> professionalsFilterSpecialties = professionalRepository.
-                    findBySpecialties(professionalSpecialtiesService.getSpecialtiesProfessional(especialidades));
+                    findBySpecialtiesIn(professionalSpecialtiesService.getSpecialtiesProfessionalUUID(especialidades));
             if (professionalsFilterSpecialties != null && !professionalsFilterSpecialties.isEmpty()) {
                 professionals.addAll(professionalsFilterSpecialties);
             }
@@ -430,7 +415,7 @@ public class ProfessionalService {
 
         if (idiomas != null && !idiomas.isEmpty()) {
             List<Professional> professionalsFilterLanguages = professionalRepository.
-                    findByLanguages(professionalLanguagesService.getLanguagesProfessional(idiomas));
+                    findByLanguagesIn(professionalLanguagesService.getLanguagesProfessionalUUID(idiomas));
             if (professionalsFilterLanguages != null && !professionalsFilterLanguages.isEmpty()) {
                 professionals.addAll(professionalsFilterLanguages);
             }
@@ -440,6 +425,7 @@ public class ProfessionalService {
 
         // 2. Mapear para DTO
         List<ProfessionalInfo> professionalsInfo = professionals.stream()
+                .filter(Professional::getRegistrationCompleted)
                 .map(this::professionalToDTO)
                 .collect(Collectors.toList());
 

@@ -11,6 +11,7 @@ import projeto.hugo.terapia.profile.model.ProfileInterests;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -26,6 +27,19 @@ public class ProfessionalInterestsService {
             ProfessionalInterests profileInterest = professionalInterestsRepository.findByValue(interest);
             if(profileInterest != null){
                 professionalInterestsList.add(profileInterest);
+            }
+        }
+
+        return professionalInterestsList;
+    }
+
+    public List<UUID> getInterestsProfessionalUUID(List<String> interests){
+        List<UUID> professionalInterestsList = new ArrayList<>();
+
+        for(String interest : interests){
+            ProfessionalInterests profileInterest = professionalInterestsRepository.findByValue(interest);
+            if(profileInterest != null){
+                professionalInterestsList.add(profileInterest.getId());
             }
         }
 

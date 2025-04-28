@@ -9,6 +9,7 @@ import projeto.hugo.terapia.professional.repository.ProfessionalSpecialtiesRepos
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -24,6 +25,19 @@ public class ProfessionalSpecialtiesService {
             Specialty professionalSpecialty = professionalSpecialtiesRepository.findByValue(specialtiy);
             if(professionalSpecialty != null){
                 professionalSpecialtyList.add(professionalSpecialty);
+            }
+        }
+
+        return professionalSpecialtyList;
+    }
+
+    public List<UUID> getSpecialtiesProfessionalUUID(List<String> specialties){
+        List<UUID> professionalSpecialtyList = new ArrayList<>();
+
+        for(String specialtiy : specialties){
+            Specialty professionalSpecialty = professionalSpecialtiesRepository.findByValue(specialtiy);
+            if(professionalSpecialty != null){
+                professionalSpecialtyList.add(professionalSpecialty.getId());
             }
         }
 

@@ -10,6 +10,7 @@ import projeto.hugo.terapia.professional.repository.ProfessionalLanguagesReposit
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -25,6 +26,19 @@ public class ProfessionalLanguagesService {
             Language professionalLanguage = professionalLanguagesRepository.findByValue(language);
             if(professionalLanguage != null){
                 professionalLanguageList.add(professionalLanguage);
+            }
+        }
+
+        return professionalLanguageList;
+    }
+
+    public List<UUID> getLanguagesProfessionalUUID(List<String> languages){
+        List<UUID> professionalLanguageList = new ArrayList<>();
+
+        for(String language : languages){
+            Language professionalLanguage = professionalLanguagesRepository.findByValue(language);
+            if(professionalLanguage != null){
+                professionalLanguageList.add(professionalLanguage.getId());
             }
         }
 
