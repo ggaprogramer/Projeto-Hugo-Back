@@ -9,6 +9,7 @@ import projeto.hugo.terapia.authentication.security.TokenService;
 import projeto.hugo.terapia.professional.model.Professional;
 import projeto.hugo.terapia.professional.service.ProfessionalInterestsService;
 import projeto.hugo.terapia.professional.service.ProfessionalService;
+import projeto.hugo.terapia.profile.dto.ResponseUpdateDTO;
 import projeto.hugo.terapia.profile.enumeracoes.Gender;
 import projeto.hugo.terapia.profile.enumeracoes.TypeProfile;
 import projeto.hugo.terapia.profile.model.Profile;
@@ -143,6 +144,7 @@ public class AuthService {
         String password2 = registroDTO.password2();
         List<RolesUsers> roles = registroDTO.roles();
         String phone = registroDTO.phone();
+        String crp = registroDTO.crp();
         String dateBirth = registroDTO.dateBirth();
         List<String> interests = registroDTO.interests();
         Gender gender = registroDTO.gender();
@@ -308,10 +310,30 @@ public class AuthService {
             profile.setInterests(profileInterestsService.getInterestsProfile(interests));
             profileService.saveProfile(profile);
         } else {
+            if(crp == null){
+                return ResponseEntity
+                        .status(HttpStatus.BAD_REQUEST)
+                        .body(new ResponseRegisterDTO(
+                                StatusResponse.ERROR,
+                                "crp",
+                                "Nenhum crp foi enviado."));
+            }
+
+            Professional findProfessionalByCrp = professionalService.findByCrp(crp);
+            if(findProfessionalByCrp != null){
+                return ResponseEntity
+                        .status(HttpStatus.BAD_REQUEST)
+                        .body(new ResponseRegisterDTO(
+                                StatusResponse.ERROR,
+                                "O crp enviado já está atrelado a um outro profissional.",
+                                "crp"));
+            }
+
             Professional professional = new Professional();
             professional.setUser(novoUsuario);
             professional.setName(name);
             professional.setPhone(phone);
+            professional.setCrp(crp);
             professional.setDateBirth(dateFormated);
             professional.setGender(gender);
             professional.setInterests(professionalInterestsService.getInterestsProfessional(interests));

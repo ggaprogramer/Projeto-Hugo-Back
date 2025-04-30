@@ -24,6 +24,12 @@ public class Professional {
     private String phone;
 
     @Column
+    private String crp;
+
+    @Column(columnDefinition = "TEXT", unique = true)
+    private String description;
+
+    @Column
     private LocalDate dateBirth;
 
     @OneToOne(cascade = CascadeType.ALL)
@@ -82,7 +88,8 @@ public class Professional {
     @PreUpdate
     private void preUpdateRegistrationCompleted(){
         if(photo == null || interests.isEmpty() || approaches.isEmpty()
-                || specialties.isEmpty() || languages.isEmpty()){
+                || specialties.isEmpty() || languages.isEmpty()
+                || crp == null || description == null){
             setRegistrationCompleted(false);
         } else {
             setRegistrationCompleted(true);

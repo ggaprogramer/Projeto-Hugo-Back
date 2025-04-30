@@ -13,6 +13,7 @@ public record ProfessionalUpdateDTO (
         String password2,
         String email,
         String phone,
+        String description,
         String base64File,
         String mimeType,
         List<String> interests,

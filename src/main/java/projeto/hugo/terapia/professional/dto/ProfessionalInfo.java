@@ -11,6 +11,8 @@ public record ProfessionalInfo(
         String username,
         String email,
         String phone,
+        String crp,
+        String description,
         String dateBirth,
         String linkPhoto,
         List<ProfessionalInterestsDTO> interests,

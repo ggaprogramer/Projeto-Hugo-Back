@@ -75,6 +75,7 @@ public class ProfessionalService {
         String password2 = professionalUpdateDTO.password2();
         String email = professionalUpdateDTO.email();
         String phone = professionalUpdateDTO.phone();
+        String description = professionalUpdateDTO.description();
         String base64File = professionalUpdateDTO.base64File();
         String mimeType = professionalUpdateDTO.mimeType();
         List<String> interests = professionalUpdateDTO.interests();
@@ -235,6 +236,7 @@ public class ProfessionalService {
         findProfessional.setName(name);
         findProfessional.setPhone(phone);
         findProfessional.setGender(gender);
+        findProfessional.setDescription(description);
         findProfessional.setInterests(professionalInterestsService.getInterestsProfessional(interests));
         findProfessional.setApproaches(professionalApproachesService.getApproachesProfessional(approaches));
         findProfessional.setSpecialties(professionalSpecialtiesService.getSpecialtiesProfessional(Specialties));
@@ -271,7 +273,7 @@ public class ProfessionalService {
                 .status(HttpStatus.BAD_REQUEST)
                 .body(new ProfessionalInfo(null, null, null, null,
                         null, null, null, null, null, null,
-                        null, null, null, null));
+                        null, null, null, null, null, null));
     }
 
     public ResponseEntity<ResponseUrlPhotoDTO> getUrlPhoto(@PathVariable UUID uuid){
@@ -335,6 +337,8 @@ public class ProfessionalService {
                 professional.getUser().getUsername(),
                 professional.getUser().getEmail(),
                 professional.getPhone(),
+                professional.getCrp(),
+                professional.getDescription(),
                 dataFormatada,
                 linkPhoto,
                 professionalInterests,
@@ -470,4 +474,7 @@ public class ProfessionalService {
         };
     }
 
+    public Professional findByCrp(String crp){
+        return professionalRepository.findByCrp(crp);
+    }
 }
