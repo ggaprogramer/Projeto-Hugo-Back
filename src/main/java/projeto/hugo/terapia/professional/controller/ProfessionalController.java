@@ -1,11 +1,14 @@
 package projeto.hugo.terapia.professional.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import projeto.hugo.terapia.professional.dto.ProfessionalFilterDTO;
 import projeto.hugo.terapia.professional.dto.ProfessionalInfo;
 import projeto.hugo.terapia.professional.dto.ProfessionalUpdateDTO;
+import projeto.hugo.terapia.professional.model.Professional;
 import projeto.hugo.terapia.professional.service.ProfessionalService;
 import projeto.hugo.terapia.profile.dto.ProfileInfo;
 import projeto.hugo.terapia.profile.dto.ProfileUpdateDTO;
@@ -36,5 +39,10 @@ public class ProfessionalController {
     @GetMapping("/photo/{uuid}")
     public ResponseEntity<ResponseUrlPhotoDTO> getUrlPhoto(@PathVariable UUID uuid){
         return professionalService.getUrlPhoto(uuid);
+    }
+
+    @PostMapping("/filter")
+    public Page<ProfessionalInfo> listFilterProfessionals(@RequestBody ProfessionalFilterDTO professionalFilterDTO){
+        return professionalService.listFilterProfessionals(professionalFilterDTO);
     }
 }

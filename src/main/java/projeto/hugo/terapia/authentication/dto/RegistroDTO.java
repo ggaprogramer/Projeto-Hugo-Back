@@ -13,6 +13,7 @@ public record RegistroDTO(
         String email,
         List<RolesUsers> roles,
         String phone,
+        String crp,
         String dateBirth,
         List<String> interests,
         Gender gender,

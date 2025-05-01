@@ -12,6 +12,7 @@ import projeto.hugo.terapia.professional.repository.ProfessionalApproachesReposi
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -27,6 +28,19 @@ public class ProfessionalApproachesService {
             Approach professionalApproach = professionalApproachesRepository.findByValue(approach);
             if(professionalApproach != null){
                 professionalApproachesList.add(professionalApproach);
+            }
+        }
+
+        return professionalApproachesList;
+    }
+
+    public List<UUID> getApproachesProfessionalUUID(List<String> approaches){
+        List<UUID> professionalApproachesList = new ArrayList<>();
+
+        for(String approach : approaches){
+            Approach professionalApproach = professionalApproachesRepository.findByValue(approach);
+            if(professionalApproach != null){
+                professionalApproachesList.add(professionalApproach.getId());
             }
         }
 
