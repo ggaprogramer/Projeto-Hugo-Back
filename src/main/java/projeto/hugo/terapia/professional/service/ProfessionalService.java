@@ -367,14 +367,45 @@ public class ProfessionalService {
         List<Disponibilidade> disponibilidades = professionalFilterDTO.disponibilidade();
 
         Set<Professional> professionals = new HashSet<>();
+        professionals.addAll(professionalRepository.findAll());
 
-        // 1. Buscar todas as entidades
+        if (interesses != null && !interesses.isEmpty()) {
+            professionals = professionals
+                    .stream()
+                    .filter(professional -> new HashSet<>(professional.getInterests())
+                            .containsAll(professionalInterestsService.getInterestsProfessional(interesses)))
+                    .collect(Collectors.toSet());
+        }
+
+        if (abordagens != null && !abordagens.isEmpty()) {
+            professionals = professionals
+                    .stream()
+                    .filter(professional -> new HashSet<>(professional.getApproaches())
+                            .containsAll(professionalApproachesService.getApproachesProfessional(abordagens)))
+                    .collect(Collectors.toSet());
+        }
+
+        if (especialidades != null && !especialidades.isEmpty()) {
+            professionals = professionals
+                    .stream()
+                    .filter(professional -> new HashSet<>(professional.getSpecialties())
+                            .containsAll(professionalSpecialtiesService.getSpecialtiesProfessional(especialidades)))
+                    .collect(Collectors.toSet());
+        }
+
+        if (idiomas != null && !idiomas.isEmpty()) {
+            professionals = professionals
+                    .stream()
+                    .filter(professional -> new HashSet<>(professional.getLanguages())
+                            .containsAll(professionalLanguagesService.getLanguagesProfessional(idiomas)))
+                    .collect(Collectors.toSet());
+        }
+
         if (nome != null && !nome.isBlank()) {
-            List<Professional> professionalsFilterName = professionalRepository.
-                    findByNameContainingIgnoreCase(nome);
-            if (professionalsFilterName != null && !professionalsFilterName.isEmpty()) {
-                professionals.addAll(professionalsFilterName);
-            }
+            professionals = professionals
+                    .stream()
+                    .filter(professional -> professional.getName().toLowerCase().contains(nome.toLowerCase()))
+                    .collect(Collectors.toSet());
         }
 
         if (genero != null && !genero.equals(GenderFilter.TODOS)) {
@@ -386,54 +417,21 @@ public class ProfessionalService {
             } else {
                 gender = Gender.OUTROS;
             }
-            List<Professional> professionalsFilterGender = professionalRepository.
-                    findByGender(gender);
-            if (professionalsFilterGender != null && !professionalsFilterGender.isEmpty()) {
-                professionals.addAll(professionalsFilterGender);
-            }
-        }
 
-        if (interesses != null && !interesses.isEmpty()) {
-            List<Professional> professionalsFilterInterests = professionalRepository.
-                    findByInterestsIn(professionalInterestsService.getInterestsProfessionalUUID(interesses));
-            if (professionalsFilterInterests != null && !professionalsFilterInterests.isEmpty()) {
-                professionals.addAll(professionalsFilterInterests);
-            }
-        }
+            professionals = professionals
+                    .stream()
+                    .filter(professional -> professional.getGender().equals(gender))
+                    .collect(Collectors.toSet());
 
-        if (abordagens != null && !abordagens.isEmpty()) {
-            List<Professional> professionalsFilterApproaches = professionalRepository.
-                    findByApproachesIn(professionalApproachesService.getApproachesProfessionalUUID(abordagens));
-            if (professionalsFilterApproaches != null && !professionalsFilterApproaches.isEmpty()) {
-                professionals.addAll(professionalsFilterApproaches);
-            }
-        }
-
-        if (especialidades != null && !especialidades.isEmpty()) {
-            List<Professional> professionalsFilterSpecialties = professionalRepository.
-                    findBySpecialtiesIn(professionalSpecialtiesService.getSpecialtiesProfessionalUUID(especialidades));
-            if (professionalsFilterSpecialties != null && !professionalsFilterSpecialties.isEmpty()) {
-                professionals.addAll(professionalsFilterSpecialties);
-            }
-        }
-
-        if (idiomas != null && !idiomas.isEmpty()) {
-            List<Professional> professionalsFilterLanguages = professionalRepository.
-                    findByLanguagesIn(professionalLanguagesService.getLanguagesProfessionalUUID(idiomas));
-            if (professionalsFilterLanguages != null && !professionalsFilterLanguages.isEmpty()) {
-                professionals.addAll(professionalsFilterLanguages);
-            }
         }
 
         Pageable pageable = PageRequest.of(pagina, tamanho, Sort.by(Sort.Direction.fromString(direcao), ordenarPor));
 
-        // 2. Mapear para DTO
         List<ProfessionalInfo> professionalsInfo = professionals.stream()
                 .filter(Professional::getRegistrationCompleted)
                 .map(this::professionalToDTO)
                 .collect(Collectors.toList());
 
-        // 3. Ordenar na memória
         if (pageable.getSort().isSorted()) {
             for (var order : pageable.getSort()) {
                 Comparator<ProfessionalInfo> comparator = getComparator(order.getProperty());
