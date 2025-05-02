@@ -276,6 +276,25 @@ public class ProfessionalService {
                         null, null, null, null, null, null));
     }
 
+    public ResponseEntity<ProfessionalInfo> getAnyProfessional(UUID uuid){
+        Usuario findUsuario = userService.findUserById(uuid);
+        if(findUsuario != null){
+            Professional findProfessional = findProfessionalByUser(findUsuario);
+            if(findProfessional != null){
+                ProfessionalInfo professionalInfo = this.professionalToDTO(findProfessional);
+
+                return ResponseEntity
+                        .status(HttpStatus.OK)
+                        .body(professionalInfo);
+            }
+        }
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(new ProfessionalInfo(null, null, null, null,
+                        null, null, null, null, null, null,
+                        null, null, null, null, null, null));
+    }
+
     public ResponseEntity<ResponseUrlPhotoDTO> getUrlPhoto(@PathVariable UUID uuid){
         Optional<Professional> professional = this.findProfessionalById(uuid);
         if(professional.isPresent()){
@@ -320,7 +339,7 @@ public class ProfessionalService {
         List<ProfessionalLanguageDTO> professionalLanguages = professional.getLanguages()
                 .stream()
                 .map(language ->
-                        new ProfessionalLanguageDTO(language.getValue(), language.getLabel(), language.getLevel().name()))
+                        new ProfessionalLanguageDTO(language.getValue(), language.getLabel(), language.getLevel().getName()))
                 .collect(Collectors.toList());
 
         String linkPhoto = null;
@@ -332,7 +351,7 @@ public class ProfessionalService {
         }
 
         return new ProfessionalInfo(
-                professional.getId(),
+                professional.getUser().getId(),
                 professional.getName(),
                 professional.getUser().getUsername(),
                 professional.getUser().getEmail(),

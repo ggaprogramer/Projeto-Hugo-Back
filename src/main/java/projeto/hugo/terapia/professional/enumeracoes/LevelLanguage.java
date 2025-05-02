@@ -7,7 +7,7 @@ public enum LevelLanguage {
     NATIVO("Nativo"),
     BASICO("Básico"),
     INTERMEDIARIO("Intermediário"),
-    AVANÇADO("Avançado"),
+    AVANCADO("Avançado"),
     FLUENTE("Fluente");
 
     private final String name;

@@ -2,6 +2,7 @@ package projeto.hugo.terapia.professional.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import projeto.hugo.terapia.agendamentos.model.ConfigAgendamento;
 import projeto.hugo.terapia.authentication.model.Usuario;
 import projeto.hugo.terapia.profile.enumeracoes.Gender;
 
@@ -74,6 +75,9 @@ public class Professional {
 
     @OneToOne(mappedBy = "professional", cascade = CascadeType.ALL, orphanRemoval = true)
     private ProfessionalPhoto photo;
+
+    @OneToOne(mappedBy = "professional", cascade = CascadeType.ALL)
+    private ConfigAgendamento configAgendamento;
 
     @Column(name="registration_completed")
     private Boolean registrationCompleted;

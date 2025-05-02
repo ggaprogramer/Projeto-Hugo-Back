@@ -30,6 +30,11 @@ public class ProfessionalController {
         return professionalService.getInfoProfessional();
     }
 
+    @GetMapping("/any/{uuid}")
+    public ResponseEntity<ProfessionalInfo> getAnyProfessional(@PathVariable UUID uuid){
+        return professionalService.getAnyProfessional(uuid);
+    }
+
     @PreAuthorize("hasAnyRole('PROFESSIONAL')")
     @PutMapping("/update")
     public ResponseEntity<ResponseUpdateDTO> updateProfessional(@RequestBody ProfessionalUpdateDTO professionalUpdateDTO){

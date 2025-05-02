@@ -39,6 +39,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/auth/register").permitAll()
                         .requestMatchers(HttpMethod.POST, "/auth/is-authenticated").permitAll()
                         .requestMatchers(HttpMethod.GET, "/profile-interests").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/professional/any/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/professional-interests").permitAll()
                         .requestMatchers(HttpMethod.GET, "/professional-approaches").permitAll()
                         .requestMatchers(HttpMethod.GET, "/professional-specialties").permitAll()
