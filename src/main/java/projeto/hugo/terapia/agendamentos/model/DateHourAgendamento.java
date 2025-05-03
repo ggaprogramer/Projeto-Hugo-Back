@@ -6,25 +6,24 @@ import lombok.Getter;
 import lombok.Setter;
 import projeto.hugo.terapia.professional.model.Professional;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
+@Table
 @Getter
 @Setter
-public class ConfigAgendamento {
+public class DateHourAgendamento {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column
-    private Double price;
+    @Column(nullable = false)
+    private LocalDateTime dayHour;
 
-    @Column
-    private Integer duration;
-
-    @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "professional_id", referencedColumnName = "id")
+    @ManyToOne
+    @JoinColumn(name = "professional_id")
     private Professional professional;
 
     @Override

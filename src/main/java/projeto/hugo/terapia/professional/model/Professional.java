@@ -2,7 +2,10 @@ package projeto.hugo.terapia.professional.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import projeto.hugo.terapia.agendamentos.model.ConfigAgendamento;
+import projeto.hugo.terapia.agendamentos.model.DateHourAgendamento;
 import projeto.hugo.terapia.authentication.model.Usuario;
 import projeto.hugo.terapia.profile.enumeracoes.Gender;
 
@@ -11,7 +14,8 @@ import java.util.*;
 
 @Entity
 @Table
-@Data
+@Getter
+@Setter
 public class Professional {
 
     @Id
@@ -79,6 +83,9 @@ public class Professional {
     @OneToOne(mappedBy = "professional", cascade = CascadeType.ALL)
     private ConfigAgendamento configAgendamento;
 
+    @OneToMany(mappedBy = "professional", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<DateHourAgendamento> dateHourAgendamentos = new ArrayList<>();
+
     @Column(name="registration_completed")
     private Boolean registrationCompleted;
 
@@ -100,5 +107,10 @@ public class Professional {
         }
     }
     // Exclusivos do profissional - FIM
+
+    @Override
+    public String toString() {
+        return id.toString();
+    }
 
 }
