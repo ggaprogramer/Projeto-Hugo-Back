@@ -35,7 +35,31 @@ public class ConfigAgendamentoService {
     private final ConfigAgendamentoRepository configAgendamentoRepository;
     private final DateHourAgendamentoRepository dateHourAgendamentoRepository;
 
-    public ResponseEntity<Boolean> cadastrarConfigAgendamento(ConfigAgendamentoDTO configAgendamentoDTO){
+    public ResponseEntity<ConfigAgendamentoDTO> extractConfigAgendamento(){
+        UUID uuid = securityUtils.getIdUserByFilterSecurity();
+        Usuario findUsuario = userService.findUserById(uuid);
+
+        if(findUsuario != null){
+            Professional findProfessional = professionalService.findProfessionalByUser(findUsuario);
+            if(findProfessional != null){
+
+                ConfigAgendamento findConfigAgendamento = configAgendamentoRepository.findByProfessional(findProfessional);
+                if(findConfigAgendamento != null){
+                    ConfigAgendamentoDTO configAgendamentoDTO = new ConfigAgendamentoDTO(
+                            findConfigAgendamento.getPrice(),
+                            findConfigAgendamento.getDuration()
+                    );
+
+                    return ResponseEntity
+                            .status(HttpStatus.OK)
+                            .body(configAgendamentoDTO);
+                }
+            }
+        }
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+    }
+
+    public ResponseEntity<Boolean> cadastrarOuAtualizarConfigAgendamento(ConfigAgendamentoDTO configAgendamentoDTO){
         UUID uuid = securityUtils.getIdUserByFilterSecurity();
         Usuario findUsuario = userService.findUserById(uuid);
 
@@ -48,12 +72,17 @@ public class ConfigAgendamentoService {
                     ConfigAgendamento configAgendamento = new ConfigAgendamento();
                     configAgendamento.setDuration(configAgendamentoDTO.duration());
                     configAgendamento.setPrice(configAgendamentoDTO.price());
+                    configAgendamento.setProfessional(findProfessional);
                     configAgendamentoRepository.save(configAgendamento);
-
-                    return ResponseEntity
-                            .status(HttpStatus.OK)
-                            .body(true);
+                } else {
+                    findConfigAgendamento.setDuration(configAgendamentoDTO.duration());
+                    findConfigAgendamento.setPrice(configAgendamentoDTO.price());
+                    configAgendamentoRepository.save(findConfigAgendamento);
                 }
+
+                return ResponseEntity
+                        .status(HttpStatus.OK)
+                        .body(true);
             }
         }
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(false);
@@ -73,10 +102,18 @@ public class ConfigAgendamentoService {
                     String dateTimeString = day.toLocalDate().toString() + "T" + hour + ":00"; // Formato "yyyy-MM-dd'T'HH:mm:ss"
                     LocalDateTime localDateTime = LocalDateTime.parse(dateTimeString, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
 
-                    DateHourAgendamento dateHourAgendamento = new DateHourAgendamento();
-                    dateHourAgendamento.setDayHour(localDateTime);
-                    dateHourAgendamento.setProfessional(findProfessional);
-                    dateHourAgendamentoRepository.save(dateHourAgendamento);
+                    DateHourAgendamento verifyIfExistsDateHourAgendamento =
+                            dateHourAgendamentoRepository.findByDayHourAndProfessional(localDateTime, findProfessional);
+
+                    if(verifyIfExistsDateHourAgendamento == null){
+                        DateHourAgendamento dateHourAgendamento = new DateHourAgendamento();
+                        dateHourAgendamento.setDayHour(localDateTime);
+                        dateHourAgendamento.setProfessional(findProfessional);
+                        dateHourAgendamentoRepository.save(dateHourAgendamento);
+                    } else {
+                        return ResponseEntity
+                                .status(HttpStatus.UNAUTHORIZED).body(false);
+                    }
                 }
 
                 return ResponseEntity
