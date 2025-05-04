@@ -32,4 +32,9 @@ public class ConfigAgendamentoController {
         return configAgendamentoService.getDateHourAgendamento();
     }
 
+    @DeleteMapping("delete-hour-day-agendamento")
+    public ResponseEntity<Boolean> deleteDateHourAgendamento(@RequestBody DataHourDTO dataHourDTO) {
+        return configAgendamentoService.deleteDateHourAgendamento(dataHourDTO);
+    }
+
 }

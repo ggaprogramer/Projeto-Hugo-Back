@@ -134,4 +134,55 @@ public class ConfigAgendamentoService {
                 .collect(Collectors.toList());
     }
 
+    private List<LocalDateTime> toLocalDateTime(List<DataHourDTO> dataHourDTOList) {
+        if (dataHourDTOList == null || dataHourDTOList.isEmpty()) {
+            return List.of(); // Retorna uma lista vazia se a entrada for nula ou vazia
+        }
+
+        // Para cada DataHourDTO, cria um LocalDateTime combinando o dia com as horas
+        return dataHourDTOList.stream()
+                .flatMap(dataHourDTO ->
+                        dataHourDTO.hours().stream()
+                                .map(hour -> {
+                                    // Converte a hora para um LocalTime
+                                    String[] timeParts = hour.split(":");
+                                    int hourInt = Integer.parseInt(timeParts[0]);
+                                    int minuteInt = Integer.parseInt(timeParts[1]);
+
+                                    // Combina a data (com o início do dia) com a hora extraída de 'hours'
+                                    return dataHourDTO.day().toLocalDate().atTime(hourInt, minuteInt);
+                                })
+                )
+                .collect(Collectors.toList());
+    }
+
+
+    public ResponseEntity<Boolean> deleteDateHourAgendamento(DataHourDTO dataHourDTO){
+        UUID uuid = securityUtils.getIdUserByFilterSecurity();
+        Usuario findUsuario = userService.findUserById(uuid);
+
+        if(findUsuario != null){
+            Professional findProfessional = professionalService.findProfessionalByUser(findUsuario);
+            if(findProfessional != null){
+                List<DataHourDTO> dataHourDTOList = new ArrayList<>();
+                dataHourDTOList.add(dataHourDTO);
+                List<LocalDateTime> localDateTimes = toLocalDateTime(dataHourDTOList);
+
+                if(!localDateTimes.isEmpty()){
+                    DateHourAgendamento dateHourAgendamento = dateHourAgendamentoRepository
+                            .findByDayHourAndProfessional(localDateTimes.getFirst(), findProfessional);
+                    dateHourAgendamentoRepository.delete(dateHourAgendamento);
+                } else {
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(false);
+                }
+
+                return ResponseEntity
+                        .status(HttpStatus.OK)
+                        .body(true);
+            }
+        }
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(false);
+    }
+
 }

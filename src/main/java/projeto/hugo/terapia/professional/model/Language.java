@@ -1,13 +1,15 @@
 package projeto.hugo.terapia.professional.model;
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import projeto.hugo.terapia.professional.enumeracoes.LevelLanguage;
 
 import java.util.*;
 
 @Entity
 @Table
-@Data
+@Getter
+@Setter
 public class Language {
 
     @Id
@@ -26,5 +28,10 @@ public class Language {
 
     @ManyToMany(mappedBy = "languages")
     private List<Professional> professionals = new ArrayList<>();
+
+    @Override
+    public String toString() {
+        return this.id.toString();
+    }
 
 }
