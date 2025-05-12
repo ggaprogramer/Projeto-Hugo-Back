@@ -16,13 +16,12 @@ import projeto.hugo.terapia.authentication.utils.SecurityUtils;
 import projeto.hugo.terapia.professional.model.Professional;
 import projeto.hugo.terapia.professional.service.ProfessionalService;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
+import java.time.ZoneId;
 import java.util.stream.Collectors;
 
 @Service
@@ -101,6 +100,13 @@ public class ConfigAgendamentoService {
                 for (String hour : hours) {
                     String dateTimeString = day.toLocalDate().toString() + "T" + hour + ":00"; // Formato "yyyy-MM-dd'T'HH:mm:ss"
                     LocalDateTime localDateTime = LocalDateTime.parse(dateTimeString, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+
+                    LocalDateTime dateNow = LocalDateTime.now();
+
+                    if(localDateTime.isBefore(dateNow)){
+                        return ResponseEntity
+                                .status(HttpStatus.UNAUTHORIZED).body(false);
+                    }
 
                     DateHourAgendamento verifyIfExistsDateHourAgendamento =
                             dateHourAgendamentoRepository.findByDayHourAndProfessional(localDateTime, findProfessional);

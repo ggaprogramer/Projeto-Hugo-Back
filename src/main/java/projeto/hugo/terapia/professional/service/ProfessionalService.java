@@ -8,14 +8,17 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PathVariable;
+import projeto.hugo.terapia.agendamentos.dto.ConfigAgendamentoDTO;
+import projeto.hugo.terapia.agendamentos.model.ConfigAgendamento;
+import projeto.hugo.terapia.agendamentos.repository.ConfigAgendamentoRepository;
 import projeto.hugo.terapia.authentication.enumeracoes.StatusResponse;
 import projeto.hugo.terapia.authentication.model.Usuario;
+import projeto.hugo.terapia.authentication.repository.UserRepository;
 import projeto.hugo.terapia.authentication.service.UserService;
 import projeto.hugo.terapia.authentication.utils.SecurityUtils;
 import projeto.hugo.terapia.cloudfare.service.CloudfareService;
 import projeto.hugo.terapia.professional.dto.*;
 import projeto.hugo.terapia.professional.model.Professional;
-import projeto.hugo.terapia.professional.model.ProfessionalInterests;
 import projeto.hugo.terapia.professional.model.ProfessionalPhoto;
 import projeto.hugo.terapia.professional.repository.ProfessionalRepository;
 import projeto.hugo.terapia.profile.dto.*;
@@ -46,6 +49,7 @@ public class ProfessionalService {
     private final SecurityUtils securityUtils;
     private final CloudfareService cloudfareService;
     private final ProfileUtils profileUtils;
+    private final ConfigAgendamentoRepository configAgendamentoRepository;
 
     public void saveProfessional(Professional professional) {
         professionalRepository.save(professional);
@@ -276,23 +280,39 @@ public class ProfessionalService {
                         null, null, null, null, null, null));
     }
 
-    public ResponseEntity<ProfessionalInfo> getAnyProfessional(UUID uuid){
+    public ResponseEntity<ProfessionalAnyDTO> getAnyProfessional(UUID uuid){
         Usuario findUsuario = userService.findUserById(uuid);
         if(findUsuario != null){
             Professional findProfessional = findProfessionalByUser(findUsuario);
             if(findProfessional != null){
                 ProfessionalInfo professionalInfo = this.professionalToDTO(findProfessional);
+                ConfigAgendamentoDTO configAgendamentoDTO = this.extractConfigAgendamentoByProfessional(findProfessional);
+
+                ProfessionalAnyDTO professionalAnyDTO = new ProfessionalAnyDTO(
+                        professionalInfo,
+                        configAgendamentoDTO
+                );
 
                 return ResponseEntity
                         .status(HttpStatus.OK)
-                        .body(professionalInfo);
+                        .body(professionalAnyDTO);
             }
         }
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
-                .body(new ProfessionalInfo(null, null, null, null,
-                        null, null, null, null, null, null,
-                        null, null, null, null, null, null));
+                .body(new ProfessionalAnyDTO(null, null));
+    }
+
+    public ConfigAgendamentoDTO extractConfigAgendamentoByProfessional(Professional professional){
+        ConfigAgendamento findConfigAgendamento = configAgendamentoRepository.findByProfessional(professional);
+        if(findConfigAgendamento != null){
+
+            return new ConfigAgendamentoDTO(
+                    findConfigAgendamento.getPrice(),
+                    findConfigAgendamento.getDuration()
+            );
+        }
+        return null;
     }
 
     public ResponseEntity<ResponseUrlPhotoDTO> getUrlPhoto(@PathVariable UUID uuid){
@@ -370,7 +390,7 @@ public class ProfessionalService {
         );
     }
 
-    public Page<ProfessionalInfo> listFilterProfessionals(ProfessionalFilterDTO professionalFilterDTO) {
+    public Page<ProfessionalAnyDTO> listFilterProfessionals(ProfessionalFilterDTO professionalFilterDTO) {
         Integer pagina = professionalFilterDTO.pagina();
         Integer tamanho = professionalFilterDTO.tamanho();
         String direcao = professionalFilterDTO.direcao();
@@ -387,6 +407,11 @@ public class ProfessionalService {
 
         Set<Professional> professionals = new HashSet<>();
         professionals.addAll(professionalRepository.findAll());
+
+        professionals = professionals
+                .stream()
+                .filter(professional -> this.extractConfigAgendamentoByProfessional(professional) != null)
+                .collect(Collectors.toSet());
 
         if (interesses != null && !interesses.isEmpty()) {
             professionals = professionals
@@ -451,15 +476,31 @@ public class ProfessionalService {
                 .map(this::professionalToDTO)
                 .collect(Collectors.toList());
 
+        List<ProfessionalAnyDTO> professionalsAnyList = new ArrayList<>();
+        if(!professionalsInfo.isEmpty()){
+            for(ProfessionalInfo professionalInfo : professionalsInfo){
+                Usuario userProfessional = userService.findUserById(professionalInfo.uuid());
+                if(userProfessional != null){
+                    Optional<Professional> professional = professionalRepository.findByUser(userProfessional);
+                    if(professional.isPresent()){
+                        professionalsAnyList.add(new ProfessionalAnyDTO(
+                                professionalInfo,
+                                this.extractConfigAgendamentoByProfessional(professional.get())
+                        ));
+                    }
+                }
+            }
+        }
+
         if (pageable.getSort().isSorted()) {
             for (var order : pageable.getSort()) {
-                Comparator<ProfessionalInfo> comparator = getComparator(order.getProperty());
+                Comparator<ProfessionalAnyDTO> comparator = getComparator(order.getProperty());
 
                 if (comparator != null) {
                     if (order.isDescending()) {
                         comparator = comparator.reversed();
                     }
-                    professionalsInfo = professionalsInfo.stream()
+                    professionalsAnyList = professionalsAnyList.stream()
                             .sorted(comparator)
                             .collect(Collectors.toList());
                 }
@@ -470,23 +511,23 @@ public class ProfessionalService {
         int pageSize = pageable.getPageSize();
         int currentPage = pageable.getPageNumber();
         int startItem = currentPage * pageSize;
-        List<ProfessionalInfo> pagedList;
+        List<ProfessionalAnyDTO> pagedList;
 
-        if (professionalsInfo.size() < startItem) {
+        if (professionalsAnyList.size() < startItem) {
             pagedList = List.of();
         } else {
-            int toIndex = Math.min(startItem + pageSize, professionalsInfo.size());
-            pagedList = professionalsInfo.subList(startItem, toIndex);
+            int toIndex = Math.min(startItem + pageSize, professionalsAnyList.size());
+            pagedList = professionalsAnyList.subList(startItem, toIndex);
         }
 
-        return new PageImpl<>(pagedList, pageable, professionalsInfo.size());
+        return new PageImpl<>(pagedList, pageable, professionalsAnyList.size());
     }
 
-    private Comparator<ProfessionalInfo> getComparator(String property) {
+    private Comparator<ProfessionalAnyDTO> getComparator(String property) {
         return switch (property) {
-            case "id" -> Comparator.comparing(ProfessionalInfo::uuid);
-            case "name" -> Comparator.comparing(ProfessionalInfo::name, String.CASE_INSENSITIVE_ORDER);
-            case "email" -> Comparator.comparing(ProfessionalInfo::email, String.CASE_INSENSITIVE_ORDER);
+            case "id" -> Comparator.comparing(dto -> dto.professionalInfo().uuid());
+            case "name" -> Comparator.comparing(dto -> dto.professionalInfo().name(), String.CASE_INSENSITIVE_ORDER);
+            case "email" -> Comparator.comparing(dto -> dto.professionalInfo().email(), String.CASE_INSENSITIVE_ORDER);
             default -> null;
         };
     }
