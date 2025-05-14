@@ -39,11 +39,13 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/auth/register").permitAll()
                         .requestMatchers(HttpMethod.POST, "/auth/is-authenticated").permitAll()
                         .requestMatchers(HttpMethod.GET, "/profile-interests").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/professional/any/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/professional-interests").permitAll()
                         .requestMatchers(HttpMethod.GET, "/professional-approaches").permitAll()
                         .requestMatchers(HttpMethod.GET, "/professional-specialties").permitAll()
                         .requestMatchers(HttpMethod.GET, "/professional-languages").permitAll()
                         .requestMatchers(HttpMethod.POST, "/professional/filter").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/config-agendamento/get-agendamento/**").permitAll()
                         .anyRequest().authenticated();
                 })
                 .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)

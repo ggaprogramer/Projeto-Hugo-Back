@@ -1,0 +1,49 @@
+package projeto.hugo.terapia.agendamentos.controller;
+
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+import projeto.hugo.terapia.agendamentos.dto.ConfigAgendamentoDTO;
+import projeto.hugo.terapia.agendamentos.dto.DataHourDTO;
+import projeto.hugo.terapia.agendamentos.service.ConfigAgendamentoService;
+
+import java.util.*;
+
+@RestController
+@RequestMapping("/config-agendamento")
+@RequiredArgsConstructor
+public class ConfigAgendamentoController {
+
+    private final ConfigAgendamentoService configAgendamentoService;
+
+    @PreAuthorize("hasAnyRole('PROFESSIONAL')")
+    @PutMapping("update-config")
+    public ResponseEntity<Boolean> cadastrarOuAtualizarConfigAgendamento(@RequestBody ConfigAgendamentoDTO configAgendamentoDTO) {
+        return configAgendamentoService.cadastrarOuAtualizarConfigAgendamento(configAgendamentoDTO);
+    }
+
+    @PreAuthorize("hasAnyRole('PROFESSIONAL')")
+    @GetMapping("extract-config")
+    public ResponseEntity<ConfigAgendamentoDTO> extractConfigAgendamento() {
+        return configAgendamentoService.extractConfigAgendamento();
+    }
+
+    @PreAuthorize("hasAnyRole('PROFESSIONAL')")
+    @PostMapping("create-hour-day-agendamento")
+    public ResponseEntity<Boolean> cadastrarDateHourAgendamento(@RequestBody DataHourDTO dataHourDTO) {
+        return configAgendamentoService.cadastrarDateHourAgendamento(dataHourDTO);
+    }
+
+    @GetMapping("get-agendamento/{uuid}")
+    public ResponseEntity<List<DataHourDTO>> getDateHourAgendamento(@PathVariable UUID uuid) {
+        return configAgendamentoService.getDateHourAgendamento(uuid);
+    }
+
+    @PreAuthorize("hasAnyRole('PROFESSIONAL')")
+    @DeleteMapping("delete-hour-day-agendamento")
+    public ResponseEntity<Boolean> deleteDateHourAgendamento(@RequestBody DataHourDTO dataHourDTO) {
+        return configAgendamentoService.deleteDateHourAgendamento(dataHourDTO);
+    }
+
+}

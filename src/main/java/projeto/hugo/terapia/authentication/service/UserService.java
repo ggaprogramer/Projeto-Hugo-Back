@@ -20,7 +20,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder encoder;
 
-    public Boolean findUserByEmail(@PathVariable String email){
+    public Boolean findUserByEmail(String email){
         Optional<Usuario> usuario = userRepository.findByEmail(email);
         if(usuario.isPresent()){
             return true;
@@ -28,7 +28,7 @@ public class UserService {
         return false;
     }
 
-    public Boolean findUserByUsername(@PathVariable String username){
+    public Boolean findUserByUsername(String username){
         Optional<Usuario> usuario = userRepository.findByUsername(username);
         if(usuario.isPresent()){
             return true;

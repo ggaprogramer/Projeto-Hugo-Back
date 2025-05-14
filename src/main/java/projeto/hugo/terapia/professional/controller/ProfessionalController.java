@@ -5,6 +5,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import projeto.hugo.terapia.professional.dto.ProfessionalAnyDTO;
 import projeto.hugo.terapia.professional.dto.ProfessionalFilterDTO;
 import projeto.hugo.terapia.professional.dto.ProfessionalInfo;
 import projeto.hugo.terapia.professional.dto.ProfessionalUpdateDTO;
@@ -30,6 +31,11 @@ public class ProfessionalController {
         return professionalService.getInfoProfessional();
     }
 
+    @GetMapping("/any/{uuid}")
+    public ResponseEntity<ProfessionalAnyDTO> getAnyProfessional(@PathVariable UUID uuid){
+        return professionalService.getAnyProfessional(uuid);
+    }
+
     @PreAuthorize("hasAnyRole('PROFESSIONAL')")
     @PutMapping("/update")
     public ResponseEntity<ResponseUpdateDTO> updateProfessional(@RequestBody ProfessionalUpdateDTO professionalUpdateDTO){
@@ -42,7 +48,7 @@ public class ProfessionalController {
     }
 
     @PostMapping("/filter")
-    public Page<ProfessionalInfo> listFilterProfessionals(@RequestBody ProfessionalFilterDTO professionalFilterDTO){
+    public Page<ProfessionalAnyDTO> listFilterProfessionals(@RequestBody ProfessionalFilterDTO professionalFilterDTO){
         return professionalService.listFilterProfessionals(professionalFilterDTO);
     }
 }

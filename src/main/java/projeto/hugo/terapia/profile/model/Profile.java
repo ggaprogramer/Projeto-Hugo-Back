@@ -68,4 +68,9 @@ public class Profile {
         }
     }
 
+    @Override
+    public String toString() {
+        return this.id.toString();
+    }
+
 }
