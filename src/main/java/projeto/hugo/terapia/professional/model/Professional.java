@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.Setter;
 import projeto.hugo.terapia.agendamentos.model.ConfigAgendamento;
 import projeto.hugo.terapia.agendamentos.model.DateHourAgendamento;
+import projeto.hugo.terapia.agendamentos.model.Session;
 import projeto.hugo.terapia.authentication.model.Usuario;
 import projeto.hugo.terapia.profile.enumeracoes.Gender;
 
@@ -85,6 +86,9 @@ public class Professional {
 
     @OneToMany(mappedBy = "professional", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<DateHourAgendamento> dateHourAgendamentos = new ArrayList<>();
+
+    @OneToMany(mappedBy = "professional", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Session> sessions = new ArrayList<>();
 
     @Column(name="registration_completed")
     private Boolean registrationCompleted;

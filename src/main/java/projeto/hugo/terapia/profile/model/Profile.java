@@ -2,6 +2,7 @@ package projeto.hugo.terapia.profile.model;
 
 import lombok.Getter;
 import lombok.Setter;
+import projeto.hugo.terapia.agendamentos.model.Session;
 import projeto.hugo.terapia.authentication.model.Usuario;
 import projeto.hugo.terapia.profile.enumeracoes.Gender;
 import jakarta.persistence.*;
@@ -67,6 +68,9 @@ public class Profile {
             setRegistrationCompleted(true);
         }
     }
+
+    @OneToMany(mappedBy = "profile", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Session> sessions = new ArrayList<>();
 
     @Override
     public String toString() {

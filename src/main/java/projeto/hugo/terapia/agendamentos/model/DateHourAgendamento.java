@@ -26,6 +26,9 @@ public class DateHourAgendamento {
     @JoinColumn(name = "professional_id")
     private Professional professional;
 
+    @OneToOne(mappedBy = "dateHourSession", cascade = CascadeType.ALL)
+    private Session session;
+
     @Override
     public String toString() {
         return id.toString();
