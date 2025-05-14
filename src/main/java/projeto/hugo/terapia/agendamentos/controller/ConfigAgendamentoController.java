@@ -6,10 +6,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import projeto.hugo.terapia.agendamentos.dto.ConfigAgendamentoDTO;
 import projeto.hugo.terapia.agendamentos.dto.DataHourDTO;
-import projeto.hugo.terapia.agendamentos.model.DateHourAgendamento;
 import projeto.hugo.terapia.agendamentos.service.ConfigAgendamentoService;
 
-import java.util.List;
+import java.util.*;
 
 @RestController
 @RequestMapping("/config-agendamento")
@@ -36,10 +35,9 @@ public class ConfigAgendamentoController {
         return configAgendamentoService.cadastrarDateHourAgendamento(dataHourDTO);
     }
 
-    @PreAuthorize("hasAnyRole('PROFESSIONAL')")
-    @GetMapping("get-agendamento")
-    public ResponseEntity<List<DataHourDTO>> getDateHourAgendamento() {
-        return configAgendamentoService.getDateHourAgendamento();
+    @GetMapping("get-agendamento/{uuid}")
+    public ResponseEntity<List<DataHourDTO>> getDateHourAgendamento(@PathVariable UUID uuid) {
+        return configAgendamentoService.getDateHourAgendamento(uuid);
     }
 
     @PreAuthorize("hasAnyRole('PROFESSIONAL')")

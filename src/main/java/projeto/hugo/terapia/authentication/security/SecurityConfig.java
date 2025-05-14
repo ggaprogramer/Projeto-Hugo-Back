@@ -45,6 +45,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/professional-specialties").permitAll()
                         .requestMatchers(HttpMethod.GET, "/professional-languages").permitAll()
                         .requestMatchers(HttpMethod.POST, "/professional/filter").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/config-agendamento/get-agendamento/**").permitAll()
                         .anyRequest().authenticated();
                 })
                 .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)

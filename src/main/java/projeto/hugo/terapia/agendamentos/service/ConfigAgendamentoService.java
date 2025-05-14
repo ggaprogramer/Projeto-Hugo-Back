@@ -16,12 +16,10 @@ import projeto.hugo.terapia.authentication.utils.SecurityUtils;
 import projeto.hugo.terapia.professional.model.Professional;
 import projeto.hugo.terapia.professional.service.ProfessionalService;
 
-import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.time.ZoneId;
 import java.util.stream.Collectors;
 
 @Service
@@ -130,8 +128,7 @@ public class ConfigAgendamentoService {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(false);
     }
 
-    public ResponseEntity<List<DataHourDTO>> getDateHourAgendamento(){
-        UUID uuid = securityUtils.getIdUserByFilterSecurity();
+    public ResponseEntity<List<DataHourDTO>> getDateHourAgendamento(UUID uuid){
         Usuario findUsuario = userService.findUserById(uuid);
 
         if(findUsuario != null){
