@@ -5,11 +5,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import projeto.hugo.terapia.agendamentos.dto.DataHourDTO;
+import projeto.hugo.terapia.agendamentos.enumeracoes.StatusSession;
 import projeto.hugo.terapia.agendamentos.model.ConfigAgendamento;
 import projeto.hugo.terapia.agendamentos.model.DateHourAgendamento;
+import projeto.hugo.terapia.agendamentos.model.Session;
 import projeto.hugo.terapia.agendamentos.repository.ConfigAgendamentoRepository;
 import projeto.hugo.terapia.agendamentos.dto.ConfigAgendamentoDTO;
 import projeto.hugo.terapia.agendamentos.repository.DateHourAgendamentoRepository;
+import projeto.hugo.terapia.agendamentos.repository.SessionRepository;
 import projeto.hugo.terapia.authentication.model.Usuario;
 import projeto.hugo.terapia.authentication.service.UserService;
 import projeto.hugo.terapia.authentication.utils.SecurityUtils;
@@ -31,6 +34,7 @@ public class ConfigAgendamentoService {
     private final ProfessionalService professionalService;
     private final ConfigAgendamentoRepository configAgendamentoRepository;
     private final DateHourAgendamentoRepository dateHourAgendamentoRepository;
+    private final SessionRepository sessionRepository;
 
     public ResponseEntity<ConfigAgendamentoDTO> extractConfigAgendamento(){
         UUID uuid = securityUtils.getIdUserByFilterSecurity();
@@ -54,6 +58,26 @@ public class ConfigAgendamentoService {
             }
         }
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+    }
+
+    public ConfigAgendamentoDTO extractConfigAgendamentoByAnyProfessional(UUID uuid){
+        Usuario findUsuario = userService.findUserById(uuid);
+
+        if(findUsuario != null){
+            Professional findProfessional = professionalService.findProfessionalByUser(findUsuario);
+            if(findProfessional != null){
+
+                ConfigAgendamento findConfigAgendamento = configAgendamentoRepository.findByProfessional(findProfessional);
+                if(findConfigAgendamento != null){
+
+                    return new ConfigAgendamentoDTO(
+                            findConfigAgendamento.getPrice(),
+                            findConfigAgendamento.getDuration()
+                    );
+                }
+            }
+        }
+        return null;
     }
 
     public ResponseEntity<Boolean> cadastrarOuAtualizarConfigAgendamento(ConfigAgendamentoDTO configAgendamentoDTO){
@@ -137,6 +161,7 @@ public class ConfigAgendamentoService {
                 List<DateHourAgendamento> listDateHourAgendamento = dateHourAgendamentoRepository.findByProfessional(findProfessional);
                 List<LocalDateTime> dateTimes = listDateHourAgendamento
                         .stream()
+                        .filter(datehour -> !this.verifyIfSessionExistsByDateHourAndProfessional(datehour, findProfessional))
                         .map(DateHourAgendamento::getDayHour)
                         .toList();
                 List<DataHourDTO> listDataHourDTO = toDataHourDTO(dateTimes);
@@ -196,6 +221,12 @@ public class ConfigAgendamentoService {
                 .collect(Collectors.toList());
     }
 
+    public Boolean verifyIfSessionExistsByDateHourAndProfessional(DateHourAgendamento dateHourAgendamento, Professional professional){
+        Session session = sessionRepository.findByDateHourSessionAndProfessional(dateHourAgendamento, professional);
+        if(session == null){
+            return false;
+        } else return !session.getStatus().equals(StatusSession.CANCELLED);
+    }
 
     public ResponseEntity<Boolean> deleteDateHourAgendamento(DataHourDTO dataHourDTO){
         UUID uuid = securityUtils.getIdUserByFilterSecurity();

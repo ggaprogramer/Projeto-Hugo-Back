@@ -30,22 +30,35 @@ public class Payment {
     @Column
     private Double amount;
 
-    @Column
+    @Column(columnDefinition="varchar")
+    @Enumerated(EnumType.STRING)
     private StatusPayment statusPayment;
 
-    @CreatedDate
-    @Column(nullable = false, updatable = false)
+    @Column(updatable = false)
     private LocalDateTime dateCreated;
 
-    @LastModifiedDate
-    @Column(nullable = false)
+    @Column
     private LocalDateTime lastModifiedDate;
 
     @PrePersist
-    private void prePersistStatus(){
+    private void prePersist(){
         if(this.active == null){
             setActive(false);
         }
+        if(this.statusPayment == null){
+            setStatusPayment(StatusPayment.PENDING);
+        }
+        if(this.dateCreated == null){
+            setDateCreated(LocalDateTime.now());
+        }
+        if(this.lastModifiedDate == null){
+            setLastModifiedDate(LocalDateTime.now());
+        }
+    }
+
+    @PreUpdate
+    private void preUpdate(){
+        setLastModifiedDate(LocalDateTime.now());
     }
 
     @Override

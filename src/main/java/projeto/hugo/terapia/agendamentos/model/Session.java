@@ -6,6 +6,7 @@ import lombok.Setter;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import projeto.hugo.terapia.agendamentos.enumeracoes.StatusSession;
+import projeto.hugo.terapia.payment.enumeracoes.StatusPayment;
 import projeto.hugo.terapia.payment.model.Payment;
 import projeto.hugo.terapia.professional.model.Professional;
 import projeto.hugo.terapia.profile.model.Profile;
@@ -35,23 +36,43 @@ public class Session {
     private Profile profile;
 
     @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "payment_id", referencedColumnName = "id", nullable = false)
+    @JoinColumn(name = "payment_id", referencedColumnName = "id")
     private Payment payment;
+
+    @Column
+    private Integer duration;
 
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "date_hour_session_id", referencedColumnName = "id", nullable = false)
     private DateHourAgendamento dateHourSession;
 
-    @Column
+    @Column(columnDefinition="varchar")
+    @Enumerated(EnumType.STRING)
     private StatusSession status;
 
-    @CreatedDate
-    @Column(nullable = false, updatable = false)
+    @Column(updatable = false)
     private LocalDateTime dateCreated;
 
-    @LastModifiedDate
-    @Column(nullable = false)
+    @Column
     private LocalDateTime lastModifiedDate;
+
+    @PrePersist
+    private void prePersist(){
+        if(this.status == null){
+            setStatus(StatusSession.PROCESSING);
+        }
+        if(this.dateCreated == null){
+            setDateCreated(LocalDateTime.now());
+        }
+        if(this.lastModifiedDate == null){
+            setLastModifiedDate(LocalDateTime.now());
+        }
+    }
+
+    @PreUpdate
+    private void preUpdate(){
+        setLastModifiedDate(LocalDateTime.now());
+    }
 
     @Override
     public String toString() {
