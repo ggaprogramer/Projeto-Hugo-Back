@@ -1,12 +1,12 @@
 package projeto.hugo.terapia.agendamentos.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.cglib.core.Local;
+import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import projeto.hugo.terapia.agendamentos.dto.ConfigAgendamentoDTO;
-import projeto.hugo.terapia.agendamentos.dto.SessionRequestDTO;
-import projeto.hugo.terapia.agendamentos.dto.SessionResponseDTO;
+import projeto.hugo.terapia.agendamentos.dto.*;
 import projeto.hugo.terapia.agendamentos.enumeracoes.StatusSession;
 import projeto.hugo.terapia.agendamentos.model.DateHourAgendamento;
 import projeto.hugo.terapia.agendamentos.model.Session;
@@ -18,14 +18,17 @@ import projeto.hugo.terapia.authentication.service.UserService;
 import projeto.hugo.terapia.authentication.utils.SecurityUtils;
 import projeto.hugo.terapia.payment.model.Payment;
 import projeto.hugo.terapia.payment.service.PaymentService;
+import projeto.hugo.terapia.professional.dto.ProfessionalAnyDTO;
 import projeto.hugo.terapia.professional.model.Professional;
 import projeto.hugo.terapia.professional.service.ProfessionalService;
 import projeto.hugo.terapia.profile.model.Profile;
 import projeto.hugo.terapia.profile.service.ProfileService;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -148,7 +151,117 @@ public class SessionService {
         Session session = sessionRepository.findByDateHourSessionAndProfessional(dateHourAgendamento, professional);
         if(session == null){
             return false;
-        } else return !session.getStatus().equals(StatusSession.CANCELLED);
+        } else return !session.getStatus().equals(StatusSession.CANCELED);
+    }
+
+    public Page<SessionProfileDTO> extractSessionsProfile(SessionFilterProfileDTO sessionFilterDTO){
+        Integer pagina = sessionFilterDTO.pagina();
+        Integer tamanho = sessionFilterDTO.tamanho();
+        String direcao = sessionFilterDTO.direcao();
+        String ordenarPor = sessionFilterDTO.ordenarPor();
+        String nomeProfessional = sessionFilterDTO.nomeProfessional();
+        LocalDateTime date = sessionFilterDTO.date();
+        StatusSession status = sessionFilterDTO.status();
+
+        UUID uuid = securityUtils.getIdUserByFilterSecurity();
+        Usuario findUsuario = userService.findUserById(uuid);
+
+        if(findUsuario != null){
+            Profile findProfile = profileService.findProfileByUser(findUsuario);
+            if(findProfile != null){
+
+                List<Session> sessions = new ArrayList<>();
+                sessions.addAll(sessionRepository.findByProfile(findProfile));
+
+                if (nomeProfessional != null && !nomeProfessional.isBlank()) {
+                    sessions = sessions
+                            .stream()
+                            .filter(session -> session.getProfessional().getName().toLowerCase().contains(nomeProfessional.toLowerCase()))
+                            .collect(Collectors.toList());
+                }
+
+                if(date != null){
+                    sessions = sessions
+                            .stream()
+                            .filter(session -> {
+                                LocalDate dateOnly = session.getDateHourSession().getDayHour().toLocalDate();
+                                LocalDate dateFilter = date.toLocalDate();
+                                if(dateFilter.equals(dateOnly)){
+                                    return true;
+                                }
+                                return false;
+                            })
+                            .collect(Collectors.toList());
+                }
+
+                if(status != null && !status.equals(StatusSession.TODOS)){
+                    sessions = sessions
+                            .stream()
+                            .filter(session -> session.getStatus().equals(status))
+                            .collect(Collectors.toList());
+                }
+
+                Pageable pageable = PageRequest.of(pagina, tamanho, Sort.by(Sort.Direction.fromString(direcao), ordenarPor));
+
+                List<SessionProfileDTO> sessionProfileDTOS = sessions.stream()
+                        .map(session -> new SessionProfileDTO(
+                            session.getId(),
+                            session.getLink(),
+                            session.getProfessional().getId(),
+                            session.getProfessional().getName(),
+                            professionalService.getUrlPhotoReturnLink(session.getProfessional().getId()),
+                            session.getPayment().getActive(),
+                            session.getPayment().getAmount(),
+                            session.getPayment().getStatusPayment(),
+                            session.getDuration(),
+                            session.getDateHourSession().getDayHour(),
+                            session.getDateHourSessionFinallized(),
+                            session.getStatus()
+                        ))
+                        .toList();
+
+                if (pageable.getSort().isSorted()) {
+                    for (var order : pageable.getSort()) {
+                        Comparator<SessionProfileDTO> comparator = getComparatorProfile(order.getProperty());
+
+                        if (comparator != null) {
+                            if (order.isDescending()) {
+                                comparator = comparator.reversed();
+                            }
+                            sessionProfileDTOS = sessionProfileDTOS.stream()
+                                    .sorted(comparator)
+                                    .collect(Collectors.toList());
+                        }
+                    }
+                }
+
+                // 4. Paginar na memória
+                int pageSize = pageable.getPageSize();
+                int currentPage = pageable.getPageNumber();
+                int startItem = currentPage * pageSize;
+                List<SessionProfileDTO> pagedList;
+
+                if(sessionProfileDTOS.size() < startItem) {
+                    pagedList = List.of();
+                } else {
+                    int toIndex = Math.min(startItem + pageSize, sessionProfileDTOS.size());
+                    pagedList = sessionProfileDTOS.subList(startItem, toIndex);
+                }
+
+                return new PageImpl<>(pagedList, pageable, sessionProfileDTOS.size());
+            }
+
+        }
+        return null;
+
+    }
+
+    private Comparator<SessionProfileDTO> getComparatorProfile(String property) {
+        return switch (property) {
+            case "id" -> Comparator.comparing(SessionProfileDTO::id);
+            case "name" -> Comparator.comparing(SessionProfileDTO::professionalName, String.CASE_INSENSITIVE_ORDER);
+            default -> null;
+        };
     }
 
 }

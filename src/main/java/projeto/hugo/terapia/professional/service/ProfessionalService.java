@@ -330,6 +330,15 @@ public class ProfessionalService {
         }
     }
 
+    public String getUrlPhotoReturnLink(UUID uuid){
+        Optional<Professional> professional = this.findProfessionalById(uuid);
+        if(professional.isPresent()){
+            return cloudfareService.generateLinkFile(professional.get().getPhoto().getBucket(), professional.get().getPhoto().getName());
+        } else {
+            return null;
+        }
+    }
+
     public Professional atualizarProfessional(Professional professional){
         return professionalRepository.save(professional);
     }
@@ -534,5 +543,9 @@ public class ProfessionalService {
 
     public Professional findByCrp(String crp){
         return professionalRepository.findByCrp(crp);
+    }
+
+    public Professional findByName(String name){
+        return professionalRepository.findByName(name);
     }
 }

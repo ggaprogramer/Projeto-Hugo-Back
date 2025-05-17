@@ -15,6 +15,8 @@ public interface ProfessionalRepository extends JpaRepository<Professional, UUID
 
     public Professional findByCrp(String crp);
 
+    public Professional findByName(String name);
+
     public List<Professional> findByGender(Gender gender);
 
     public List<Professional> findByNameContainingIgnoreCase(String name);

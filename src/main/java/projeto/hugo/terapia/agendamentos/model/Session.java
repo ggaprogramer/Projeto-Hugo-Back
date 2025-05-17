@@ -42,6 +42,9 @@ public class Session {
     @Column
     private Integer duration;
 
+    @Column(updatable = false)
+    private LocalDateTime dateHourSessionFinallized;
+
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "date_hour_session_id", referencedColumnName = "id", nullable = false)
     private DateHourAgendamento dateHourSession;
@@ -67,6 +70,10 @@ public class Session {
         if(this.lastModifiedDate == null){
             setLastModifiedDate(LocalDateTime.now());
         }
+        if(this.dateHourSessionFinallized == null){
+            setDateHourSessionFinallized(dateHourSession.getDayHour().plusMinutes(duration));
+        }
+
     }
 
     @PreUpdate

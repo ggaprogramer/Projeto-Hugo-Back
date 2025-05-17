@@ -225,7 +225,7 @@ public class ConfigAgendamentoService {
         Session session = sessionRepository.findByDateHourSessionAndProfessional(dateHourAgendamento, professional);
         if(session == null){
             return false;
-        } else return !session.getStatus().equals(StatusSession.CANCELLED);
+        } else return !session.getStatus().equals(StatusSession.CANCELED);
     }
 
     public ResponseEntity<Boolean> deleteDateHourAgendamento(DataHourDTO dataHourDTO){
