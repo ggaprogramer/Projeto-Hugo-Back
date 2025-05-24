@@ -260,6 +260,7 @@ public class SessionService {
         return switch (property) {
             case "id" -> Comparator.comparing(SessionProfileDTO::id);
             case "name" -> Comparator.comparing(SessionProfileDTO::professionalName, String.CASE_INSENSITIVE_ORDER);
+            case "dateHourSession" -> Comparator.comparing(SessionProfileDTO::dateHourSession);
             default -> null;
         };
     }
