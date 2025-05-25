@@ -216,7 +216,7 @@ public class SessionService {
                             session.getDuration(),
                             session.getDateHourSession().getDayHour(),
                             session.getDateHourSessionFinallized(),
-                            session.getStatus()
+                            session.getStatus(), session.getProfessional().getGender()
                         ))
                         .toList();
 

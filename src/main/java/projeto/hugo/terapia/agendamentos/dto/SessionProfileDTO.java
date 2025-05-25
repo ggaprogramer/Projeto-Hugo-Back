@@ -2,6 +2,7 @@ package projeto.hugo.terapia.agendamentos.dto;
 
 import projeto.hugo.terapia.agendamentos.enumeracoes.StatusSession;
 import projeto.hugo.terapia.payment.enumeracoes.StatusPayment;
+import projeto.hugo.terapia.profile.enumeracoes.Gender;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -18,6 +19,7 @@ public record SessionProfileDTO(
         Integer duration,
         LocalDateTime dateHourSession,
         LocalDateTime dateHourSessionFinallized,
-        StatusSession status
+        StatusSession status,
+        Gender gender
 ) {
 }
