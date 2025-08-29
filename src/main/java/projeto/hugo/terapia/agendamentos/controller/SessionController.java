@@ -5,10 +5,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import projeto.hugo.terapia.agendamentos.dto.SessionFilterProfileDTO;
-import projeto.hugo.terapia.agendamentos.dto.SessionProfileDTO;
-import projeto.hugo.terapia.agendamentos.dto.SessionRequestDTO;
-import projeto.hugo.terapia.agendamentos.dto.SessionResponseDTO;
+import projeto.hugo.terapia.agendamentos.dto.*;
 import projeto.hugo.terapia.agendamentos.service.SessionService;
 
 import java.util.List;
@@ -30,6 +27,12 @@ public class SessionController {
     @PostMapping("profile")
     public Page<SessionProfileDTO> extractSessionsProfile(@RequestBody SessionFilterProfileDTO sessionFilterDTO) {
         return sessionService.extractSessionsProfile(sessionFilterDTO);
+    }
+
+    @PreAuthorize("hasAnyRole('PROFESSIONAL')")
+    @PostMapping("professional")
+    public Page<SessionProfessionalDTO> extractSessionsProfessional(@RequestBody SessionFilterProfessionalDTO sessionFilterProfessionalDTO) {
+        return sessionService.extractSessionsProfessional(sessionFilterProfessionalDTO);
     }
 
 }

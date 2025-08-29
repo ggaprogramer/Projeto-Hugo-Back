@@ -15,5 +15,7 @@ public interface SessionRepository extends JpaRepository<Session, UUID> {
 
     List<Session> findByProfile(Profile profile);
 
+    List<Session> findByProfessional(Professional professional);
+
     Session findByDateHourSessionAndProfessional(DateHourAgendamento dateHourAgendamento, Professional professional);
 }

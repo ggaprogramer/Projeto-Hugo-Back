@@ -265,4 +265,115 @@ public class SessionService {
         };
     }
 
+    public Page<SessionProfessionalDTO> extractSessionsProfessional(SessionFilterProfessionalDTO sessionFilterProfessionalDTO){
+        Integer pagina = sessionFilterProfessionalDTO.pagina();
+        Integer tamanho = sessionFilterProfessionalDTO.tamanho();
+        String direcao = sessionFilterProfessionalDTO.direcao();
+        String ordenarPor = sessionFilterProfessionalDTO.ordenarPor();
+        String nomeProfessional = sessionFilterProfessionalDTO.nomeProfessional();
+        LocalDateTime date = sessionFilterProfessionalDTO.date();
+        StatusSession status = sessionFilterProfessionalDTO.status();
+
+        UUID uuid = securityUtils.getIdUserByFilterSecurity();
+        Usuario findUsuario = userService.findUserById(uuid);
+
+        if(findUsuario != null){
+            Professional findProfessional = professionalService.findProfessionalByUser(findUsuario);
+            if(findProfessional != null){
+
+                List<Session> sessions = new ArrayList<>();
+                sessions.addAll(sessionRepository.findByProfessional(findProfessional));
+
+                if (nomeProfessional != null && !nomeProfessional.isBlank()) {
+                    sessions = sessions
+                            .stream()
+                            .filter(session -> session.getProfessional().getName().toLowerCase().contains(nomeProfessional.toLowerCase()))
+                            .collect(Collectors.toList());
+                }
+
+                if(date != null){
+                    sessions = sessions
+                            .stream()
+                            .filter(session -> {
+                                LocalDate dateOnly = session.getDateHourSession().getDayHour().toLocalDate();
+                                LocalDate dateFilter = date.toLocalDate();
+                                if(dateFilter.equals(dateOnly)){
+                                    return true;
+                                }
+                                return false;
+                            })
+                            .collect(Collectors.toList());
+                }
+
+                if(status != null && !status.equals(StatusSession.TODOS)){
+                    sessions = sessions
+                            .stream()
+                            .filter(session -> session.getStatus().equals(status))
+                            .collect(Collectors.toList());
+                }
+
+                Pageable pageable = PageRequest.of(pagina, tamanho, Sort.by(Sort.Direction.fromString(direcao), ordenarPor));
+
+                List<SessionProfessionalDTO> sessionProfessionalDTOS = sessions.stream()
+                        .map(session -> new SessionProfessionalDTO(
+                                session.getId(),
+                                session.getLink(),
+                                session.getProfessional().getId(),
+                                session.getProfile().getName(),
+                                profileService.getUrlPhotoReturnLink(session.getProfile().getId()),
+                                session.getPayment().getActive(),
+                                session.getPayment().getAmount(),
+                                session.getPayment().getStatusPayment(),
+                                session.getDuration(),
+                                session.getDateHourSession().getDayHour(),
+                                session.getDateHourSessionFinallized(),
+                                session.getStatus(), session.getProfessional().getGender()
+                        ))
+                        .toList();
+
+                if (pageable.getSort().isSorted()) {
+                    for (var order : pageable.getSort()) {
+                        Comparator<SessionProfessionalDTO> comparator = getComparatorProfessional(order.getProperty());
+
+                        if (comparator != null) {
+                            if (order.isDescending()) {
+                                comparator = comparator.reversed();
+                            }
+                            sessionProfessionalDTOS = sessionProfessionalDTOS.stream()
+                                    .sorted(comparator)
+                                    .collect(Collectors.toList());
+                        }
+                    }
+                }
+
+                // 4. Paginar na memória
+                int pageSize = pageable.getPageSize();
+                int currentPage = pageable.getPageNumber();
+                int startItem = currentPage * pageSize;
+                List<SessionProfessionalDTO> pagedList;
+
+                if(sessionProfessionalDTOS.size() < startItem) {
+                    pagedList = List.of();
+                } else {
+                    int toIndex = Math.min(startItem + pageSize, sessionProfessionalDTOS.size());
+                    pagedList = sessionProfessionalDTOS.subList(startItem, toIndex);
+                }
+
+                return new PageImpl<>(pagedList, pageable, sessionProfessionalDTOS.size());
+            }
+
+        }
+        return null;
+
+    }
+
+    private Comparator<SessionProfessionalDTO> getComparatorProfessional(String property) {
+        return switch (property) {
+            case "id" -> Comparator.comparing(SessionProfessionalDTO::id);
+            case "name" -> Comparator.comparing(SessionProfessionalDTO::profileName, String.CASE_INSENSITIVE_ORDER);
+            case "dateHourSession" -> Comparator.comparing(SessionProfessionalDTO::dateHourSession);
+            default -> null;
+        };
+    }
+
 }

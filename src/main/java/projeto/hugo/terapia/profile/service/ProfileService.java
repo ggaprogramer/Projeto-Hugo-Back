@@ -10,6 +10,7 @@ import projeto.hugo.terapia.authentication.model.Usuario;
 import projeto.hugo.terapia.authentication.service.UserService;
 import projeto.hugo.terapia.authentication.utils.SecurityUtils;
 import projeto.hugo.terapia.cloudfare.service.CloudfareService;
+import projeto.hugo.terapia.professional.model.Professional;
 import projeto.hugo.terapia.profile.dto.*;
 import projeto.hugo.terapia.profile.enumeracoes.Gender;
 import projeto.hugo.terapia.profile.enumeracoes.TypeProfile;
@@ -60,6 +61,15 @@ public class ProfileService {
     }
     public Optional<Profile> findProfileById(String uuid){
         return profileRepository.findById(UUID.fromString(uuid));
+    }
+
+    public String getUrlPhotoReturnLink(UUID uuid){
+        Optional<Profile> profile = this.findProfileById(uuid);
+        if(profile.isPresent()){
+            return cloudfareService.generateLinkFile(profile.get().getPhoto().getBucket(), profile.get().getPhoto().getName());
+        } else {
+            return null;
+        }
     }
 
     @Transactional
